@@ -31,6 +31,8 @@ jobs:
         run: npm audit --audit-level=high
       - name: Lint
         run: npm run lint
+      - name: Generated API types match the pinned spec (ADR-0006)
+        run: npm run api:types:check
       - name: Type check
         run: npm run typecheck
       - name: Format
