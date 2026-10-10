@@ -5,7 +5,7 @@
 
 ## Summary (2026-10-10)
 
-- **Slice S0 (walking skeleton):** 4 done, 1 in review, 1 in progress, 1 not started (of 7 tickets touching this repo).
+- **Slice S0 (walking skeleton):** 4 done, 2 in review, 1 in progress, 0 not started (of 7 tickets touching this repo).
 - **AWS:** account bootstrapped for CDK in us-west-2 (CDKToolkit). First dev deploy of the data stack (VPC, RDS, database roles) is pending; nothing else is deployed.
 - **Next:** S0-11 (API) and S0-12 (web) constructs, then the pipeline (S0-14 to S0-16) and alerts and budget (S0-18).
 
@@ -19,6 +19,6 @@
 | S0-17 | CI security and quality gates                                                  | done        | [frontend #4](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/4)   | Dependabot ignore rules for held-back majors: frontend #10, infra #9 (in review)           |
 | S0-19 | OpenAPI pinned-copy sync and drift gate in frontend and pipeline               | in progress | [frontend #5](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/5)   | Frontend part merged; the pipeline drift step comes with S0-14                             |
 | S0-20 | Minimal Playwright smoke and header scan against dev                           | in review   | [frontend #13](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/13) | Spec and local stand-in here; the pipeline smoke step that runs it against dev is in infra |
-| S0-21 | Runbook v0 and README per repo                                                 | not started | -                                                                                          |                                                                                            |
+| S0-21 | Runbook v0 and README per repo                                                 | in review   | frontend PR (this one), infra and backend PRs                                              | New-developer quick start and the smoke test; runbook lives in infra                       |
 
 Statuses: **not started**, **in progress**, **in review** (PR open), **done** (merged to main).
