@@ -8,17 +8,21 @@ React + TypeScript single-page app (Vite), served from S3 and CloudFront. Part o
 - **Engineering standards** (rules block merges): [docs/standards/](docs/standards/README.md)
 - **Decisions:** [docs/adr/](docs/adr/README.md)
 - **Backlog:** [docs/jira/](docs/jira/README.md)
+- **Operations** (deploy, approvals, alarms, pipeline failures): [infra runbook](https://github.com/malcolmjefferson/therapy_service_hours_infra/blob/main/docs/runbook.md)
 
-## First-time setup
+## Quick start (new developer)
 
-1. Install [gitleaks](https://github.com/gitleaks/gitleaks) (secret scanning, SEC-61).
-2. Turn on the repo's git hooks once per clone:
+**Prerequisites:** [Node](https://nodejs.org/) 22.12 or later, [gitleaks](https://github.com/gitleaks/gitleaks) (secret scanning in the pre-commit hook, SEC-61), and for live API calls a local backend (see the [backend README](https://github.com/malcolmjefferson/therapy_service_hours_backend#quick-start-new-developer)).
 
-   ```bash
-   git config core.hooksPath .githooks
-   ```
+```bash
+git clone https://github.com/malcolmjefferson/therapy_service_hours_frontend.git
+cd therapy_service_hours_frontend
+git config core.hooksPath .githooks   # once per clone: the pre-commit hook blocks commits with secrets (and when gitleaks is missing)
+npm ci
+npm run dev                            # http://localhost:5173
+```
 
-   The pre-commit hook scans staged changes for secrets and **blocks the commit** if gitleaks is missing.
+The start page shows **System status**. With the backend running locally (`APP_VERSION=local LOCAL_HTTP_ADDR=127.0.0.1:8080 go run ./cmd/api` in the backend repo) it reads **Up** and version `local`; without it, the page shows an error with a **Retry** button. `npm test` needs no backend: it mocks the API with MSW.
 
 ## Commands
 
@@ -33,6 +37,15 @@ Requires Node 22.12 or later.
 | `npm test`          | Vitest + React Testing Library + MSW (API mocked at the network boundary)                                           |
 | `npm run build`     | Production build to `dist/`                                                                                         |
 | `npm run api:types` | Regenerate `src/lib/api/schema.d.ts` from the pinned spec                                                           |
+| `npm run e2e`       | Playwright smoke and header scan (below)                                                                            |
+
+## Smoke test (Playwright, S0-20)
+
+`e2e/smoke.spec.ts` checks a running environment: a deep link loads the SPA, `/api/v1/healthz` returns JSON, an unknown API path returns problem+json, the security headers by name and value, and no console or CSP errors.
+
+- **Locally:** `npx playwright install chromium` once, then `npm run e2e`. It builds the app and serves it with `e2e/local-server.mjs`, a stand-in that mirrors the CloudFront headers and routing (with a fake healthz). CI runs this on every PR.
+- **Against an environment:** `SMOKE_URL=https://<distribution>.cloudfront.net npm run e2e`. The pipeline does this after every dev and prod deploy; a failure stops the release.
+- If you change a header in the infra web construct, change `e2e/local-server.mjs` to match.
 
 ## API contract
 
