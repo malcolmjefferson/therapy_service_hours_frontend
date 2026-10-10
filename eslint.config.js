@@ -77,13 +77,13 @@ export default tseslint.config(
     rules: { 'no-restricted-imports': 'off' },
   },
   {
-    files: ['*.js', '*.mjs', 'scripts/**/*.mjs', '*.config.ts'],
+    files: ['*.js', '*.mjs', 'scripts/**/*.mjs', 'e2e/**/*.mjs', '*.config.ts'],
     ...tseslint.configs.disableTypeChecked,
     languageOptions: { ...tseslint.configs.disableTypeChecked.languageOptions, globals: { ...globals.node } },
   },
   {
     // Command-line scripts report to the terminal.
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'e2e/**/*.mjs'],
     rules: { 'no-console': 'off' },
   },
 );
