@@ -11,6 +11,19 @@ updates:
       dev-tooling:
         dependency-type: development
         update-types: [minor, patch]
+    # Majors held back on purpose (see the S0-13 PR). Security updates still arrive.
+    ignore:
+      # openapi-typescript 7 supports TypeScript 5 only.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+      # eslint-plugin-jsx-a11y supports ESLint up to 9.
+      - dependency-name: eslint
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@eslint/js'
+        update-types: ['version-update:semver-major']
+      # Types must match the Node runtime major (22 LTS; CI and local use Node 22).
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:
