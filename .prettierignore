@@ -1,0 +1,9 @@
+# Planning pack and shared spec: kept byte-for-byte as copied (S0-01).
+docs/
+CLAUDE.md
+# Generated or vendored
+src/lib/api/schema.d.ts
+src/lib/api/openapi.yaml
+package-lock.json
+dist/
+coverage/
