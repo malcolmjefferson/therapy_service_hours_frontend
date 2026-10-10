@@ -1,0 +1,32 @@
+/* Design tokens (CLAUDE.md §12.2). The only place colors are written as hex (FE-43). */
+:root {
+  --color-gold: #cf900b;
+  --color-gold-deep: #362404;
+  --color-lime: #abcf0b;
+  --color-lime-deep: #253006;
+  --color-red: #cf2e0b;
+  --color-red-deep: #7a1c07;
+  --color-ink: #3a2a16;
+  --color-ink-soft: #7d6a54;
+  --color-paper: #fbf8f1;
+  --color-raised: #fff;
+  --color-primary: #283407;
+  --color-on-primary: #fff;
+
+  --focus-ring: 2px solid var(--color-red-deep);
+
+  --font-heading: 'Fredoka', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+
+  --page-max-width: 1600px;
+}

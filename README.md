@@ -20,6 +20,35 @@ React + TypeScript single-page app (Vite), served from S3 and CloudFront. Part o
 
    The pre-commit hook scans staged changes for secrets and **blocks the commit** if gitleaks is missing.
 
+## Commands
+
+Requires Node 22.12 or later.
+
+| Command             | What it does                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `npm ci`            | Install exact dependencies from `package-lock.json`                                                                 |
+| `npm run dev`       | Dev server on http://localhost:5173; `/api` is proxied to a local backend on `127.0.0.1:8080`                       |
+| `npm run lint`      | ESLint (strict, type-checked; hooks, a11y, import boundaries FE-01/FE-02, FE-60 bans) and the FE-43 hex-color check |
+| `npm run typecheck` | `tsc` with the FE-26 strict flags                                                                                   |
+| `npm test`          | Vitest + React Testing Library + MSW (API mocked at the network boundary)                                           |
+| `npm run build`     | Production build to `dist/`                                                                                         |
+| `npm run api:types` | Regenerate `src/lib/api/schema.d.ts` from the pinned spec                                                           |
+
+## API contract
+
+`src/lib/api/openapi.yaml` is a **pinned copy** of the backend spec; `openapi.source.json` records the backend commit it came from (ADR-0006). Types are generated from it with openapi-typescript, and `openapi-fetch` is the typed client. The drift gate and `npm run api:sync` arrive with S0-19.
+
+## Layout
+
+```
+src/app/          Shell, routes (lazy), providers, error boundary
+src/features/     One folder per feature; import a feature only through its index.ts (FE-01)
+src/components/   Shared UI (never imports features or app, FE-02)
+src/lib/api/      Pinned spec, generated types, typed client and its context
+src/theme/        Design tokens (the only place colors are written), global styles, self-hosted fonts
+src/test/         MSW server, typed handlers, render helpers
+```
+
 ## Contributing
 
 - `main` is protected: changes go through a pull request with passing checks (ARC-49).
