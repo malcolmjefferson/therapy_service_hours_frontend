@@ -38,11 +38,11 @@ Requires Node 22.12 or later.
 
 `src/lib/api/openapi.yaml` is a **pinned copy** of the backend spec; `openapi.source.json` records the backend commit it came from (ADR-0006). Types are generated from it with openapi-typescript, and `openapi-fetch` is the typed client, so removing an endpoint from the spec breaks the build wherever it is called.
 
-| Command | What it does |
-|---|---|
-| `npm run api:sync [-- --from <backend checkout>]` | Copy the backend spec (default `../therapy_service_hours_backend`), record its HEAD commit, regenerate the types |
-| `npm run api:types:check` | Fail if `schema.d.ts` is stale (runs in CI) |
-| `npm run api:drift -- --backend-spec <path>` | **Drift gate**: fail if the pinned copy differs from the backend spec being released (run by the pipeline, S0-14) |
+| Command                                           | What it does                                                                                                      |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `npm run api:sync [-- --from <backend checkout>]` | Copy the backend spec (default `../therapy_service_hours_backend`), record its HEAD commit, regenerate the types  |
+| `npm run api:types:check`                         | Fail if `schema.d.ts` is stale (runs in CI)                                                                       |
+| `npm run api:drift -- --backend-spec <path>`      | **Drift gate**: fail if the pinned copy differs from the backend spec being released (run by the pipeline, S0-14) |
 
 ## Layout
 
