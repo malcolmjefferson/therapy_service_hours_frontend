@@ -1,0 +1,27 @@
+.page {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.header {
+  margin-bottom: var(--space-8);
+}
+
+.kicker {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-deep);
+}
+
+.title {
+  margin: var(--space-1) 0 0;
+  font-size: 2rem;
+}
+
+.main {
+  display: block;
+}
