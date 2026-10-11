@@ -25,7 +25,7 @@ Statuses: **not started**, **in progress**, **in review** (PR open), **done** (m
 
 ## S1 execution (2026-10-11)
 
-| ID    | Title                      | Status    | PRs                                                                               | Notes                                                                                                                     |
-| ----- | -------------------------- | --------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| S1-02 | Auth design decisions      | done | [#18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18) | Merged. Owner accepted ADR-0008–0011 on 2026-10-11. Live federation and latency proof remain S1-18. |
-| S1-19 | Frontend /me contract sync | done | [#19](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/19) | Merged and released with backend S1-05. All 26 tests, typecheck, lint, format, build and API drift pass. The real endpoint and auth UI remain S1-08/S1-10. |
+| ID    | Title                      | Status | PRs                                                                               | Notes                                                                                                                                                      |
+| ----- | -------------------------- | ------ | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1-02 | Auth design decisions      | done   | [#18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18) | Merged. Owner accepted ADR-0008–0011 on 2026-10-11. Live federation and latency proof remain S1-18.                                                        |
+| S1-19 | Frontend /me contract sync | done   | [#19](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/19) | Merged and released with backend S1-05. All 26 tests, typecheck, lint, format, build and API drift pass. The real endpoint and auth UI remain S1-08/S1-10. |
