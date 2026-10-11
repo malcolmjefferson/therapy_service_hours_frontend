@@ -10,9 +10,12 @@ describe('typed API client', () => {
       const { data } = await client.GET('/healthz');
       // The response body is the generated HealthResponse type.
       const version: string | undefined = data?.version;
+      const { data: me } = await client.GET('/me');
+      const organizationName: string | undefined = me?.organization.name;
+      const roles: ('admin' | 'supervisor')[] | undefined = me?.roles;
       // @ts-expect-error -- /not-in-spec is not a path in the pinned spec.
       await client.GET('/not-in-spec');
-      return version;
+      return { version, organizationName, roles };
     };
     expect(typeof typed).toBe('function');
   });

@@ -25,6 +25,7 @@ Statuses: **not started**, **in progress**, **in review** (PR open), **done** (m
 
 ## S1 execution (2026-10-11)
 
-| ID | Title | Status | PRs | Notes |
-|---|---|---|---|---|
-| S1-02 | Auth design decisions | in progress | — | Owner accepted ADR-0008–0011 as proposed on 2026-10-11; decision docs prepared for review. Live federation and latency proof remain S1-18. |
+| ID    | Title                      | Status      | PRs | Notes                                                                                                                                      |
+| ----- | -------------------------- | ----------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| S1-02 | Auth design decisions      | in progress | —   | Owner accepted ADR-0008–0011 as proposed on 2026-10-11; decision docs prepared for review. Live federation and latency proof remain S1-18. |
+| S1-19 | Frontend /me contract sync | in progress | —   | Pinned S1-05 backend spec and regenerated types; added a typed fictional /me MSW fixture. Merge with S1-05 without an intervening release. |
