@@ -7,7 +7,7 @@
 
 - **Slice S0 (walking skeleton):** 7 done, 0 in review, 0 in progress, 0 not started (of 7 tickets touching this repo).
 - **AWS:** dev data stack deployed 2026-10-10. The SPA reaches dev (S3 and CloudFront) with the first pipeline run.
-- **Next:** the pipeline stack (owner), then S1 (auth and invites).
+- **S1:** execution started; ADR-0008–0011 accepted by the owner on 2026-10-11.
 
 ## Tickets
 
@@ -22,3 +22,9 @@
 | S0-21 | Runbook v0 and README per repo                                                 | done   | [frontend #14](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/14), [infra #20](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/20), [backend #12](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/12) | New-developer quick start and the smoke test; runbook lives in infra                       |
 
 Statuses: **not started**, **in progress**, **in review** (PR open), **done** (merged to main).
+
+## S1 execution (2026-10-11)
+
+| ID    | Title                 | Status    | PRs                                                                               | Notes                                                                                                                                      |
+| ----- | --------------------- | --------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| S1-02 | Auth design decisions | in review | [#18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18) | Owner accepted ADR-0008–0011 as proposed on 2026-10-11; decision docs prepared for review. Live federation and latency proof remain S1-18. |
