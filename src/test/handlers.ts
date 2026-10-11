@@ -3,6 +3,7 @@ import type { components } from '../lib/api';
 
 type Health = components['schemas']['HealthResponse'];
 type Problem = components['schemas']['Problem'];
+type Me = components['schemas']['MeResponse'];
 
 /** Absolute base URL the tests' API client uses (jsdom's origin plus the API base path). */
 export const API = 'http://localhost:3000/api/v1';
@@ -12,6 +13,18 @@ export const API = 'http://localhost:3000/api/v1';
  * Keyed by the spec path so the coverage test can compare them with api/openapi.yaml.
  */
 export const defaultHandlers: Record<string, HttpHandler> = {
+  '/me': http.get<never, never, Me>(`${API}/me`, () =>
+    HttpResponse.json({
+      id: '00000000-0000-4000-8000-000000000002',
+      name: 'Pseudonym A',
+      email: 'pseudonym-a@example.test',
+      roles: ['admin'],
+      organization: {
+        id: '00000000-0000-4000-8000-000000000001',
+        name: 'Default Organization',
+      },
+    }),
+  ),
   '/healthz': http.get<never, never, Health>(`${API}/healthz`, () =>
     HttpResponse.json({ status: 'ok', version: 'test-build-1' }),
   ),

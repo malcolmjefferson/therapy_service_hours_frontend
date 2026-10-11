@@ -4,6 +4,28 @@
  */
 
 export interface paths {
+    "/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the current user's profile and effective roles
+         * @description Returns explicit profile fields for an active, invited user. Roles are re-read from the
+         *     database on each request. The first request binds a verified identity and accepts the
+         *     invitation in one transaction; an uninvited or deactivated user is refused.
+         */
+        get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -28,6 +50,24 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        MeResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: email */
+            email: string;
+            /** @description Effective database roles. An ordinary user has an empty array. */
+            roles: ("admin" | "supervisor")[];
+            organization: components["schemas"]["OrganizationProfile"];
+        };
+        OrganizationProfile: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        GatewayUnauthorized: {
+            message: string;
+        };
         HealthResponse: {
             /** @enum {string} */
             status: "ok";
@@ -66,6 +106,40 @@ export interface components {
         };
     };
     responses: {
+        /**
+         * @description Missing or invalid authentication. The API returns Problem. The API Gateway JWT
+         *     authorizer instead returns application/json with a message field, before Lambda runs;
+         *     HTTP APIs cannot customize that response. Clients must handle both shapes.
+         */
+        Unauthorized: {
+            headers: {
+                /** @description Bearer authentication challenge when returned by the API. */
+                "WWW-Authenticate"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+                "application/json": components["schemas"]["GatewayUnauthorized"];
+            };
+        };
+        /** @description Access has not been granted, or the current user is deactivated. */
+        Forbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
+        /** @description The requested resource was not found or may not be disclosed to this user. */
+        NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
         /** @description An error, as RFC 7807 problem details. */
         Problem: {
             headers: {
@@ -90,6 +164,44 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The current active user's profile. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "id": "00000000-0000-4000-8000-000000000002",
+                     *       "name": "Pseudonym A",
+                     *       "email": "pseudonym-a@example.test",
+                     *       "roles": [
+                     *         "admin"
+                     *       ],
+                     *       "organization": {
+                     *         "id": "00000000-0000-4000-8000-000000000001",
+                     *         "name": "Default Organization"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["Problem"];
+        };
+    };
     getHealth: {
         parameters: {
             query?: never;
