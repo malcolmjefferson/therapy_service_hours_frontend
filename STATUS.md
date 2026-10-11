@@ -3,10 +3,10 @@
 > Ticket status for this repo. Updated in the same PR that changes a ticket's state (CLAUDE.md §0.10).
 > Tickets: `docs/jira/`. Other repos: [backend](https://github.com/malcolmjefferson/therapy_service_hours_backend/blob/main/STATUS.md), [infra](https://github.com/malcolmjefferson/therapy_service_hours_infra/blob/main/STATUS.md).
 
-## Summary (2026-10-10)
+## Summary (2026-10-11)
 
 - **Slice S0 (walking skeleton):** 7 done, 0 in review, 0 in progress, 0 not started (of 7 tickets touching this repo).
-- **AWS:** dev data stack deployed 2026-10-10. The SPA reaches dev (S3 and CloudFront) with the first pipeline run.
+- **AWS:** the SPA is deployed to dev through S3/CloudFront. Release 7c97ec40-371c-4387-8c26-817c75450d4c succeeded on 2026-10-11, including frontend sync and smoke tests. Prod remains deferred to M3.
 - **S1:** execution started; ADR-0008–0011 accepted by the owner on 2026-10-11.
 
 ## Tickets
@@ -27,5 +27,5 @@ Statuses: **not started**, **in progress**, **in review** (PR open), **done** (m
 
 | ID    | Title                      | Status    | PRs                                                                               | Notes                                                                                                                     |
 | ----- | -------------------------- | --------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| S1-02 | Auth design decisions      | in review | [#18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18) | Owner accepted ADR-0008–0011 on 2026-10-11. Live federation and latency proof remain S1-18.                               |
-| S1-19 | Frontend /me contract sync | in review | [#19](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/19) | All 26 tests, typecheck, lint, format, build and API drift pass. Merge with backend S1-05 without an intervening release. |
+| S1-02 | Auth design decisions      | done | [#18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18) | Merged. Owner accepted ADR-0008–0011 on 2026-10-11. Live federation and latency proof remain S1-18. |
+| S1-19 | Frontend /me contract sync | done | [#19](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/19) | Merged and released with backend S1-05. All 26 tests, typecheck, lint, format, build and API drift pass. The real endpoint and auth UI remain S1-08/S1-10. |
