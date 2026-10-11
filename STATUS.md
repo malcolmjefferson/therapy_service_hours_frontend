@@ -25,6 +25,6 @@ Statuses: **not started**, **in progress**, **in review** (PR open), **done** (m
 
 ## S1 execution (2026-10-11)
 
-| ID | Title | Status | PRs | Notes |
-|---|---|---|---|---|
-| S1-02 | Auth design decisions | in progress | — | Owner accepted ADR-0008–0011 as proposed on 2026-10-11; decision docs prepared for review. Live federation and latency proof remain S1-18. |
+| ID    | Title                 | Status    | PRs                                                                               | Notes                                                                                                                                      |
+| ----- | --------------------- | --------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| S1-02 | Auth design decisions | in review | [#18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18) | Owner accepted ADR-0008–0011 as proposed on 2026-10-11; decision docs prepared for review. Live federation and latency proof remain S1-18. |
