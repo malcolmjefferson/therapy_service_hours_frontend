@@ -15,11 +15,11 @@ export const routes: RouteObject[] = [
       {
         index: true,
         errorElement: <RouteError />,
-        lazy: async () => {
-          const { StatusPage } = await import('../features/status');
-          return { Component: StatusPage };
-        },
+        lazy: async () => ({ Component: (await import('../features/auth')).AuthLanding }),
       },
+      { path: 'auth/callback', lazy: async () => ({ Component: (await import('../features/auth')).AuthCallback }) },
+      { path: 'access-denied', lazy: async () => ({ Component: (await import('../features/auth')).AccessDenied }) },
+      { path: 'app', lazy: async () => ({ Component: (await import('../features/auth')).AuthenticatedHome }) },
       {
         path: '*',
         loader: () => {

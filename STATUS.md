@@ -25,7 +25,11 @@ Statuses: **not started**, **in progress**, **in review** (PR open), **done** (m
 
 ## S1 execution (2026-10-11)
 
-| ID    | Title                      | Status    | PRs                                                                               | Notes                                                                                                                     |
-| ----- | -------------------------- | --------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| S1-02 | Auth design decisions      | in review | [#18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18) | Owner accepted ADR-0008–0011 on 2026-10-11. Live federation and latency proof remain S1-18.                               |
-| S1-19 | Frontend /me contract sync | in review | [#19](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/19) | All 26 tests, typecheck, lint, format, build and API drift pass. Merge with backend S1-05 without an intervening release. |
+| ID    | Title                      | Status | PRs                                                                               | Notes                                                                                                                     |
+| ----- | -------------------------- | ------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| S1-02 | Auth design decisions      | done   | [#18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18) | Owner accepted ADR-0008–0011 on 2026-10-11. Live federation and latency proof remain S1-18.                               |
+| S1-19 | Frontend /me contract sync | done   | [#19](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/19) | All 26 tests, typecheck, lint, format, build and API drift pass. Merge with backend S1-05 without an intervening release. |
+
+| S1-10 | Browser PKCE authentication | in progress | [#21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21) | Prepared state/nonce/verifier transaction, memory-only tokens, refresh, revocation/logout and 401/403 handling. Intercepted browser tests pass; real Google acceptance follows activation. |
+| S1-11 | Account, landing and access-denied views | in progress | [#21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21) | Themed landing/profile, accessible account menu and safe access-denied page are prepared. Role-specific future feature navigation and actual dev acceptance remain pending. |
+| S1-16 | Cognito connection policy and runtime settings | in progress | [#21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21) | Paired infra adds the exact Cognito CSP origin and public no-store auth settings. Release infra before this frontend. Auth remains disabled. |

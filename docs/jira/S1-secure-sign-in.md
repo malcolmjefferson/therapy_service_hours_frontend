@@ -15,30 +15,38 @@ An invited Google account signs in and sees its name and role-based navigation; 
 - [ ] The demo above is performed on dev by someone other than the author, or recorded
 - [ ] Docs updated (this folder, OpenAPI, CLAUDE.md if contracts changed)
 
+## Execution status (2026-10-11)
+
+**7 done** · **9 in progress** · **0 in review** · **4 not started**
+
+The accepted plan contains 20 tickets. ADRs, schema, read-only trigger role, claims adapter, profile contracts and central authorization policies are merged. Backend identity/profile implementation is released; database seed idempotency and synthetic admission are verified. Gateway protection, CSP/runtime settings and browser PKCE sign-in are prepared for paired review. Auth remains disabled. Native fixture creation, real Google federation, measured p99, live E2E and the remaining role-specific shell work are outstanding.
+
+**Status legend:** done = merged implementation; in progress = partial implementation or remaining acceptance; in review = open PR; not started = implementation has not begun. Completion notes distinguish dev verification from deferred prod/manual acceptance. Acceptance checkboxes are not automatically checked from merge status.
+
 ## Ticket index
 
-| ID | Type | Summary | Est (d) | Blocked by |
-|---|---|---|--:|---|
-| [S1-02](#s1-02) | Spike | Spike: auth design decisions (token, binding, allowlist, test users, storage) | 1 | S0-02 |
-| [S1-04](#s1-04) | Story | Migration: organizations, users, invitations; seed Default Organization | 1.5 | S0-10 |
-| [S1-17](#s1-17) | Task | Read-only database role for the pre-sign-up trigger | 1 | S0-08 |
-| [S1-01](#s1-01) | Story | Cognito user pool, Google IdP, app client, hosted UI, secrets and token settings | 2 | S0-15, S1-02 |
-| [S1-18](#s1-18) | Spike | Spike proof: federated binding and trigger latency measured on dev | 0.5 | S1-01, S1-03 |
-| [S1-03](#s1-03) | Story | PreSignUp Lambda enforcing the invitation allowlist | 1.5 | S1-01, S1-04, S1-17 |
-| [S1-14](#s1-14) | Task | API Gateway JWT authorizer with a public /healthz route | 1 | S1-01 |
-| [S1-15](#s1-15) | Task | Authorizer claims through the Lambda adapter | 0.5 | S0-03 |
-| [S1-05](#s1-05) | Task | OpenAPI: /me and the shared Problem responses | 1 | S0-19 |
-| [S1-19](#s1-19) | Task | Frontend spec sync and /me handler, released with S1-05 | 0.5 | S1-05 |
-| [S1-06](#s1-06) | Story | Auth middleware: claims to actor, user lookup, sub binding, deactivated check | 2 | S1-04, S1-05, S1-14, S1-15, S0-09 |
-| [S1-07](#s1-07) | Story | internal/authz policy framework | 1.5 | S1-06 |
-| [S1-08](#s1-08) | Story | GET /me endpoint | 1 | S1-06, S1-07 |
-| [S1-09](#s1-09) | Task | Seed Lambda: first admin, Default Organization and dev test users | 1 | S1-04, S1-01 |
-| [S1-20](#s1-20) | Task | Break-glass admin recovery runbook entry | 0.5 | S1-09 |
-| [S1-16](#s1-16) | Task | CSP connect-src for the Cognito hosted UI domain | 0.5 | S1-01 |
-| [S1-10](#s1-10) | Story | Frontend auth: Cognito hosted UI (code + PKCE), AuthProvider, route guards | 2 | S1-01, S1-08, S1-16, S0-19 |
-| [S1-11](#s1-11) | Story | App shell: header, role-aware nav, landing and access-denied pages | 1.5 | S1-10 |
-| [S1-12](#s1-12) | Task | Role authority and token staleness: tests and runbook note | 1 | S1-06 |
-| [S1-13](#s1-13) | Task | E2E: invited sign-in and denied sign-in | 2 | S1-11, S1-09, S1-03 |
+| ID | Type | Summary | Est (d) | Blocked by | Status |
+|---|---|---|--:|---|---|
+| [S1-02](#s1-02) | Spike | Spike: auth design decisions (token, binding, allowlist, test users, storage) | 1 | S0-02 | done |
+| [S1-04](#s1-04) | Story | Migration: organizations, users, invitations; seed Default Organization | 1.5 | S0-10 | done |
+| [S1-17](#s1-17) | Task | Read-only database role for the pre-sign-up trigger | 1 | S0-08 | done |
+| [S1-01](#s1-01) | Story | Cognito user pool, Google IdP, app client, hosted UI, secrets and token settings | 2 | S0-15, S1-02 | in progress |
+| [S1-18](#s1-18) | Spike | Spike proof: federated binding and trigger latency measured on dev | 0.5 | S1-01, S1-03 | not started |
+| [S1-03](#s1-03) | Story | PreSignUp Lambda enforcing the invitation allowlist | 1.5 | S1-01, S1-04, S1-17 | in progress |
+| [S1-14](#s1-14) | Task | API Gateway JWT authorizer with a public /healthz route | 1 | S1-01 | in progress |
+| [S1-15](#s1-15) | Task | Authorizer claims through the Lambda adapter | 0.5 | S0-03 | done |
+| [S1-05](#s1-05) | Task | OpenAPI: /me and the shared Problem responses | 1 | S0-19 | done |
+| [S1-19](#s1-19) | Task | Frontend spec sync and /me handler, released with S1-05 | 0.5 | S1-05 | done |
+| [S1-06](#s1-06) | Story | Auth middleware: claims to actor, user lookup, sub binding, deactivated check | 2 | S1-04, S1-05, S1-14, S1-15, S0-09 | in progress |
+| [S1-07](#s1-07) | Story | internal/authz policy framework | 1.5 | S1-06 | done |
+| [S1-08](#s1-08) | Story | GET /me endpoint | 1 | S1-06, S1-07 | in progress |
+| [S1-09](#s1-09) | Task | Seed Lambda: first admin, Default Organization and dev test users | 1 | S1-04, S1-01 | in progress |
+| [S1-20](#s1-20) | Task | Break-glass admin recovery runbook entry | 0.5 | S1-09 | not started |
+| [S1-16](#s1-16) | Task | CSP connect-src for the Cognito hosted UI domain | 0.5 | S1-01 | in progress |
+| [S1-10](#s1-10) | Story | Frontend auth: Cognito hosted UI (code + PKCE), AuthProvider, route guards | 2 | S1-01, S1-08, S1-16, S0-19 | in progress |
+| [S1-11](#s1-11) | Story | App shell: header, role-aware nav, landing and access-denied pages | 1.5 | S1-10 | in progress |
+| [S1-12](#s1-12) | Task | Role authority and token staleness: tests and runbook note | 1 | S1-06 | not started |
+| [S1-13](#s1-13) | Task | E2E: invited sign-in and denied sign-in | 2 | S1-11, S1-09, S1-03 | not started |
 
 ---
 
@@ -56,6 +64,13 @@ An invited Google account signs in and sees its name and role-based navigation; 
 | Stories | US-01 |
 | Is blocked by | S0-02 |
 | Blocks | S1-01, S5-05 |
+| Status (2026-10-11) | done |
+
+**Completion / progress**
+
+Owner accepted ADR-0008–0011 on 2026-10-11; decisions are merged in all three repositories. Live binding and latency proof are separate S1-18 acceptance work.
+
+Merged PRs: [backend #17](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/17), [frontend #18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18), [infra #30](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/30).
 
 **Description**
 
@@ -71,7 +86,7 @@ Decision-first half of the spike, before any auth code. OQ-01 is already decided
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -91,6 +106,13 @@ Decision-first half of the spike, before any auth code. OQ-01 is already decided
 | Stories | US-46 |
 | Is blocked by | S0-10 |
 | Blocks | S1-03, S1-06, S1-09, S2-01, S5-01, S6-01 |
+| Status (2026-10-11) | done |
+
+**Completion / progress**
+
+Identity migration and sqlc lookups are merged and applied on dev; PostgreSQL lifecycle, uniqueness and idempotency tests pass.
+
+Merged PRs: [backend #20](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/20).
 
 **Description**
 
@@ -106,7 +128,7 @@ goose migration creating the tables per CLAUDE.md §9 with citext email uniquene
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -126,21 +148,28 @@ goose migration creating the tables per CLAUDE.md §9 with citext email uniquene
 | Stories | US-39 |
 | Is blocked by | S0-08 |
 | Blocks | S1-03 |
+| Status (2026-10-11) | done |
+
+**Completion / progress**
+
+presignup_ro bootstrap and exact SELECT grants on users/invitations are merged and deployed. Negative privilege tests cover writes and unrelated future tables; the deployed trigger uses its scoped IAM connection.
+
+Merged PRs: [backend #21](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/21), [infra #31](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/31).
 
 **Description**
 
-Extend the S0-08 role bootstrap with a third IAM role, presignup_ro, that may only SELECT the invitations and users tables. The bootstrap runs in the data stack before migrations, so its ALTER DEFAULT PRIVILEGES lands before S1-04 creates the tables. Scope rds-db:connect to that database user only, following the pattern in lib/app/api.ts.
+Extend the S0-08 role bootstrap with a third IAM role, presignup_ro, that may only SELECT the invitations and users tables. The bootstrap creates the role before migrations. S1-04 grants SELECT on exactly users and invitations at table creation; bootstrap also grants those existing tables when deployed later. Broad ALTER DEFAULT PRIVILEGES grants are forbidden because they would expose future client-data tables. Scope rds-db:connect to that database user only, following the pattern in lib/app/api.ts.
 
 **Acceptance criteria**
 
 - [ ] Bootstrap is still idempotent when re-run
 - [ ] presignup_ro cannot INSERT, UPDATE or DELETE (negative test)
-- [ ] Default privileges are granted before S1-04 tables exist, verified by applying both in order
+- [ ] Exact table privileges are granted with S1-04; bootstrap then migration and repeated bootstrap are verified, and unrelated future tables remain unreadable
 - [ ] rds-db:connect names the one database user, no wildcard
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -160,6 +189,13 @@ Extend the S0-08 role bootstrap with a third IAM role, presignup_ro, that may on
 | Stories | US-01 |
 | Is blocked by | S0-15, S1-02 |
 | Blocks | S1-18, S1-03, S1-14, S1-09, S1-16, S1-10, S5-04 |
+| Status (2026-10-11) | in progress |
+
+**Completion / progress**
+
+Cognito pool, Google IdP, clients and typed configuration are merged and synth-tested. The dev secret, matching Google client ID and saved redirect URI were verified. Read-only review verified the three basic identity scopes and External/Testing audience. Auth is disabled and no pool is deployed; activation and live federation verification remain.
+
+Merged PRs: [infra #32](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/32).
 
 **Description**
 
@@ -177,7 +213,7 @@ CDK auth construct in the data stack (ADR-0009, the pool is stateful): user pool
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -197,6 +233,7 @@ CDK auth construct in the data stack (ADR-0009, the pool is stateful): user pool
 | Stories | US-01 |
 | Is blocked by | S1-01, S1-03 |
 | Blocks | - |
+| Status (2026-10-11) | not started |
 
 **Description**
 
@@ -230,6 +267,13 @@ Second half of the spike, once the pool exists. Prove on dev what ADR-0007 and A
 | Stories | US-02 |
 | Is blocked by | S1-01, S1-04, S1-17 |
 | Blocks | S1-18, S1-13, S5-11 |
+| Status (2026-10-11) | in progress |
+
+**Completion / progress**
+
+Backend and infra are merged and released in dev execution 7c97ec40-371c-4387-8c26-817c75450d4c. The arm64 live alias is READY with reserved concurrency 1 and provisioned concurrency 1/1. A synthetic uninvited Google event returned SIGN_UP_NOT_ALLOWED; the decision log had only safe fields and no email. Policy and PostgreSQL tests pass. The single 66 ms sample is not p99 proof; actual federated acceptance and measured cold/warm p99 remain. The pipeline build-list bootstrap issue was repaired before release. Two provisioned cold initialization samples were 2805.16 and 3057.93 ms; these small samples do not establish p99.
+
+Merged PRs: [backend #22](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/22), [infra #33](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/33).
 
 **Description**
 
@@ -247,7 +291,7 @@ VPC Lambda trigger connecting as presignup_ro with RDS IAM auth; rejects emails 
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -267,6 +311,13 @@ VPC Lambda trigger connecting as presignup_ro with RDS IAM auth; rejects emails 
 | Stories | US-01, US-42 |
 | Is blocked by | S1-01 |
 | Blocks | S1-06 |
+| Status (2026-10-11) | in progress |
+
+**Completion / progress**
+
+Prepared Gateway JWT authorizer with issuer and SPA/dev-only test audiences; exactly one public health route is asserted for enabled environments. No-token release checks and scoped native invited/uninvited /me plus authenticated unknown-path checks are prepared. Default auth remains disabled; live activation acceptance is pending.
+
+Open PRs: [infra #37](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/37).
 
 **Description**
 
@@ -303,6 +354,13 @@ S0 built one route, ANY /api/v1/{proxy+} (lib/app/api.ts), and API Gateway attac
 | Stories | US-01 |
 | Is blocked by | S0-03 |
 | Blocks | S1-06 |
+| Status (2026-10-11) | done |
+
+**Completion / progress**
+
+Trusted authorizer claims are carried through the Lambda adapter and released to dev. Protected-route integration remains S1-06/S1-14.
+
+Merged PRs: [backend #18](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/18).
 
 **Description**
 
@@ -317,7 +375,7 @@ internal/apigw.toHTTPRequest copies path, method, query, body, headers and cooki
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -337,6 +395,13 @@ internal/apigw.toHTTPRequest copies path, method, query, body, headers and cooki
 | Stories | US-01 |
 | Is blocked by | S0-19 |
 | Blocks | S1-19, S1-06 |
+| Status (2026-10-11) | done |
+
+**Completion / progress**
+
+The /me contract and shared auth Problem responses are merged and released with frontend S1-19. The real /me endpoint remains S1-08.
+
+Merged PRs: [backend #19](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/19).
 
 **Description**
 
@@ -352,7 +417,7 @@ Spec GET /me (id, name, email, roles, organization) and the shared 401, 403 and 
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -372,6 +437,13 @@ Spec GET /me (id, name, email, roles, organization) and the shared 401, 403 and 
 | Stories | US-01 |
 | Is blocked by | S1-05 |
 | Blocks | - |
+| Status (2026-10-11) | done |
+
+**Completion / progress**
+
+Frontend /me spec, generated types and test handler are merged and released with backend S1-05. The API drift gate and frontend tests pass; real endpoint/auth UI work remains S1-08/S1-10.
+
+Merged PRs: [frontend #19](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/19).
 
 **Description**
 
@@ -386,7 +458,7 @@ The drift gate compares the pinned spec to the backend spec byte for byte (scrip
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -406,6 +478,13 @@ The drift gate compares the pinned spec to the backend spec byte for byte (scrip
 | Stories | US-01, US-02 |
 | Is blocked by | S1-04, S1-05, S1-14, S1-15, S0-09 |
 | Blocks | S1-07, S1-08, S1-12 |
+| Status (2026-10-11) | in progress |
+
+**Completion / progress**
+
+Backend #24 is merged and released in successful dev execution af3e6963-7cf5-4857-bfc8-c0a524ba1355. Transactional actor resolution/binding, current database roles/status and the lazy two-connection IAM pool pass race/PostgreSQL/privacy checks. Auth stays disabled; actual Gateway/native/Google token acceptance remains with S1-14 and activation.
+
+Merged PRs: [backend #24](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/24).
 
 **Description**
 
@@ -421,7 +500,7 @@ Wire the pgx pool into cmd/api, which has no database today, then resolve the ac
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -441,6 +520,13 @@ Wire the pgx pool into cmd/api, which has no database today, then resolve the ac
 | Stories | US-44 |
 | Is blocked by | S1-06 |
 | Blocks | S1-08, S2-05, S2-06, S2-07, S3-03, S5-03, S8-02, S10-03 |
+| Status (2026-10-11) | done |
+
+**Completion / progress**
+
+Backend #24 is merged and released. Central active-actor, same-org self/admin/supervisor/peer policies deny by default, require accepted relationships and reject storage errors. Admin grants no supervision override. /me demonstrates the handler policy call; later slices implement relationship storage.
+
+Merged PRs: [backend #24](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/24).
 
 **Description**
 
@@ -455,7 +541,7 @@ Central policy package: Actor type, role predicates, relationship checks interfa
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -475,6 +561,13 @@ Central policy package: Actor type, role predicates, relationship checks interfa
 | Stories | US-01 |
 | Is blocked by | S1-06, S1-07 |
 | Blocks | S1-10 |
+| Status (2026-10-11) | in progress |
+
+**Completion / progress**
+
+Backend #24 is merged and released. The explicit /me DTO, no-store JSON and stable 401/403 problems pass schema/privacy tests; deployed unauthenticated /me returns 401 problem+json. Actual authenticated Gateway acceptance remains pending with activation.
+
+Merged PRs: [backend #24](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/24).
 
 **Description**
 
@@ -489,7 +582,7 @@ Returns the current user's profile, roles and organization via a dedicated DTO.
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -509,6 +602,13 @@ Returns the current user's profile, roles and organization via a dedicated DTO.
 | Stories | US-46 |
 | Is blocked by | S1-04, S1-01 |
 | Blocks | S1-20, S1-13 |
+| Status (2026-10-11) | in progress |
+
+**Completion / progress**
+
+Backend #23 and infra #35/#36 are merged and released in successful dev execution 2a38a300-3311-43f7-9552-d07875d6e696. Seeding created three accounts and three invitations; a repeat under the same scoped operator created/renewed none. Synthetic Google events for invited and supervisor fixtures were allowed, while uninvited was denied. Auth remains disabled; the native Cognito fixture phase remains pending.
+
+Merged PRs: [backend #23](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/23), [infra #35](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/35), [infra #36](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/36).
 
 **Description**
 
@@ -525,7 +625,7 @@ There is no direct database access in any environment (no bastion, by budget), s
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -545,6 +645,7 @@ There is no direct database access in any environment (no bastion, by budget), s
 | Stories | US-46 |
 | Is blocked by | S1-09 |
 | Blocks | - |
+| Status (2026-10-11) | not started |
 
 **Description**
 
@@ -578,6 +679,13 @@ Sign-in is Google only and SEC-07 forbids a backdoor, so if the single admin's G
 | Stories | US-01 |
 | Is blocked by | S1-01 |
 | Blocks | S1-10 |
+| Status (2026-10-11) | in progress |
+
+**Completion / progress**
+
+Prepared exact Cognito origin in CloudFront and local CSP, strict header assertions, and no unsafe directives. Public runtime auth settings are validated, uploaded without caching and invalidated with index.html. Paired infra/frontend release and live activation remain pending.
+
+Open PRs: [infra #37](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/37), [frontend #21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21).
 
 **Description**
 
@@ -612,6 +720,13 @@ lib/app/web.ts sets connect-src 'self' and says in a comment that S1 adds the Co
 | Stories | US-01 |
 | Is blocked by | S1-01, S1-08, S1-16, S0-19 |
 | Blocks | S1-11 |
+| Status (2026-10-11) | in progress |
+
+**Completion / progress**
+
+Prepared code/PKCE browser flow with state/nonce validation, callback URL cleanup, memory-only tokens, single-flight refresh and revocation plus hosted logout. 401/403 handling clears private cache and routes safely. Unit and intercepted browser tests cover replay, reload, refresh races, logout and denied profiles. Real Google sign-in/sign-out remain pending after activation.
+
+Open PRs: [frontend #21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21).
 
 **Description**
 
@@ -648,6 +763,13 @@ Redirect flow, tokens in memory with refresh, AuthProvider and useAuth, protecte
 | Stories | US-01, US-02 |
 | Is blocked by | S1-10 |
 | Blocks | S1-13, S5-13, S6-09, S6-11, S8-04, S10-05 |
+| Status (2026-10-11) | in progress |
+
+**Completion / progress**
+
+Prepared themed signed-out landing, account-name menu, current profile and access-denied views. Serious accessibility checks and browser flows pass. Navigation for future role-specific feature pages and actual dev sign-in acceptance remain pending.
+
+Open PRs: [frontend #21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21).
 
 **Description**
 
@@ -682,6 +804,7 @@ Header with title/kicker per prototype, user name menu, nav items by role, signe
 | Stories | US-44 |
 | Is blocked by | S1-06 |
 | Blocks | - |
+| Status (2026-10-11) | not started |
 
 **Description**
 
@@ -716,6 +839,7 @@ Verify that the users row decides admin and supervisor, and that cognito:groups 
 | Stories | US-01, US-02 |
 | Is blocked by | S1-11, S1-09, S1-03 |
 | Blocks | S2-17 |
+| Status (2026-10-11) | not started |
 
 **Description**
 

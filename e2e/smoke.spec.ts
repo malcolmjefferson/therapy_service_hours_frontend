@@ -13,6 +13,18 @@ const REQUIRED_HEADERS: Record<string, (value: string) => boolean> = {
     v.includes("default-src 'self'") &&
     v.includes("frame-ancestors 'none'") &&
     v.includes("object-src 'none'") &&
+    v
+      .split(';')
+      .some(
+        (directive) =>
+          directive.trim().startsWith("connect-src 'self'") &&
+          directive
+            .split(/\s+/)
+            .includes(
+              process.env.HOSTED_UI_ORIGIN ??
+                'https://therapy-service-hours-dev-malcolmjefferson.auth.us-west-2.amazoncognito.com',
+            ),
+      ) &&
     !/unsafe-inline|unsafe-eval/.test(v),
 };
 
@@ -38,6 +50,11 @@ test('the API health check returns JSON through the shared origin', async ({ req
 
 test('an unknown API path is a problem+json 404, not the SPA', async ({ request }) => {
   const response = await request.get('/api/v1/smoke-test-does-not-exist');
+  if (process.env.AUTH_ENABLED === 'true') {
+    expect(response.status()).toBe(401);
+    expect(response.headers()['content-type']).toContain('application/json');
+    return;
+  }
   expect(response.status()).toBe(404);
   expect(response.headers()['content-type']).toContain('application/problem+json');
   const body = (await response.json()) as { type: string; status: number };
@@ -55,6 +72,11 @@ test('the start page loads the SPA and shows the API status', async ({ page }) =
   const response = await page.goto('/');
   expect(response?.status()).toBe(200);
   await expect(page.getByRole('heading', { level: 1, name: 'Clinical Hours Ledger' })).toBeVisible();
+  if (process.env.AUTH_ENABLED === 'true') {
+    await expect(page.getByRole('button', { name: 'Sign in with Google' })).toBeVisible();
+    expect(problems).toEqual([]);
+    return;
+  }
   const status = page.getByRole('region', { name: 'System status' });
   await expect(status.getByText('Up')).toBeVisible();
   // A CSP violation (for example a third-party font or inline style) would show up as a console error.

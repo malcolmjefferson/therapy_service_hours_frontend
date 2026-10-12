@@ -8,7 +8,7 @@ export function RouteError() {
   const error = useRouteError();
   const notFound = isRouteErrorResponse(error) && error.status === 404;
   if (!notFound) {
-    console.error(error);
+    console.error('Route could not be rendered');
   }
   return (
     <section role="alert" aria-labelledby="route-error-heading">
