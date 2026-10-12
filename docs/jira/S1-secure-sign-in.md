@@ -19,7 +19,7 @@ An invited Google account signs in and sees its name and role-based navigation; 
 
 **8 done** · **10 in progress** · **1 in review** · **1 not started**
 
-Dev-only activation infra #39 is merged; prod auth/deploy remain disabled. Activation stopped before deployment because backend PostgreSQL image pulls hit Docker Hub's anonymous limit. Backend #27 prepares the official-registry repair. Core identity and paired browser/Gateway preparation are released; recovery is merged and the owner retains the sole dev admin. Native browser acceptance is prepared, while live native/Google sign-in, measured p99 and the manual demo await activation. Backend #25 role-authority verification is conflict-free with all ten CI gates passing and awaits merge.
+Dev-only activation infra #39 and official-registry build repair backend #27 are merged; prod auth/deploy remain disabled. The first activation failed before deployment at Docker Hub's anonymous pull limit; a new source release is in progress. Core identity and paired browser/Gateway preparation are released; recovery is merged and the owner retains the sole dev admin. Native browser acceptance is prepared, while live native/Google sign-in, measured p99 and the manual demo await activation. Backend #25 remains in review and is kept current with merged work.
 
 **Status legend:** done = merged implementation; in progress = partial implementation or remaining acceptance; in review = open PR; not started = implementation has not begun. Completion notes distinguish dev verification from deferred prod/manual acceptance. Acceptance checkboxes are not automatically checked from merge status.
 
@@ -193,7 +193,7 @@ Extend the S0-08 role bootstrap with a third IAM role, presignup_ro, that may on
 
 **Completion / progress**
 
-Pool/Google/client implementation from infra #32 is merged. Dev-only activation is prepared after the successful paired Gateway/browser releases; prod auth/deploy remain disabled. Current Google secret and warmed alias prerequisites are verified. Pool creation and actual Google acceptance remain pending the activation release. Infra #39 is merged. Activation execution bb288e32-8a7b-487e-8344-976385e56e1d failed in backend tests before deployment: Docker Hub's anonymous PostgreSQL pull limit. Backend #27 prepares the official-registry fix; live activation acceptance remains pending a new source release.
+Pool/Google/client implementation from infra #32 is merged. Dev-only activation is prepared after the successful paired Gateway/browser releases; prod auth/deploy remain disabled. Current Google secret and warmed alias prerequisites are verified. Pool creation and actual Google acceptance remain pending the activation release. Infra #39 and backend #27 are merged. The first activation failed before deployment at Docker Hub's anonymous PostgreSQL pull limit; the official-registry repair passes all ten CI gates. New activation execution 248fa024-49a0-4ebc-bc76-73a236ca9aaa is in progress. Live acceptance remains pending deployment.
 
 Merged PRs: [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
 
@@ -271,7 +271,7 @@ Second half of the spike, once the pool exists. Prove on dev what ADR-0007 and A
 
 **Completion / progress**
 
-Backend trigger and infra attachment are merged. Latest preflight live alias version 3 is READY at 1/1; synthetic external-provider invited admission passes and uninvited denies SIGN_UP_NOT_ALLOWED. Dev activation is prepared; actual federation and measured p99 remain S1-18 acceptance. Infra #39 is merged. Activation execution bb288e32-8a7b-487e-8344-976385e56e1d failed in backend tests before deployment: Docker Hub's anonymous PostgreSQL pull limit. Backend #27 prepares the official-registry fix; live activation acceptance remains pending a new source release.
+Backend trigger and infra attachment are merged. Latest preflight live alias version 3 is READY at 1/1; synthetic external-provider invited admission passes and uninvited denies SIGN_UP_NOT_ALLOWED. Dev activation is prepared; actual federation and measured p99 remain S1-18 acceptance. Infra #39 and backend #27 are merged. The first activation failed before deployment at Docker Hub's anonymous PostgreSQL pull limit; the official-registry repair passes all ten CI gates. New activation execution 248fa024-49a0-4ebc-bc76-73a236ca9aaa is in progress. Live acceptance remains pending deployment.
 
 Merged PRs: [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
 
@@ -315,7 +315,7 @@ VPC Lambda trigger connecting as presignup_ro with RDS IAM auth; rejects emails 
 
 **Completion / progress**
 
-Gateway implementation from infra #37 is merged/released. Dev activation is prepared with exactly one public health route, issuer/SPA+dev-test audiences and scoped native token checks. Live authenticated Gateway acceptance awaits the activation release. Infra #39 is merged. Activation execution bb288e32-8a7b-487e-8344-976385e56e1d failed in backend tests before deployment: Docker Hub's anonymous PostgreSQL pull limit. Backend #27 prepares the official-registry fix; live activation acceptance remains pending a new source release.
+Gateway implementation from infra #37 is merged/released. Dev activation is prepared with exactly one public health route, issuer/SPA+dev-test audiences and scoped native token checks. Live authenticated Gateway acceptance awaits the activation release. Infra #39 and backend #27 are merged. The first activation failed before deployment at Docker Hub's anonymous PostgreSQL pull limit; the official-registry repair passes all ten CI gates. New activation execution 248fa024-49a0-4ebc-bc76-73a236ca9aaa is in progress. Live acceptance remains pending deployment.
 
 Merged PRs: [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
 
@@ -606,7 +606,7 @@ Returns the current user's profile, roles and organization via a dedicated DTO.
 
 **Completion / progress**
 
-Seed implementation is merged/released with verified DB idempotency. S1-20 recovery support and sole-admin owner decision are complete. Dev activation prepares native fixture/credential creation; those writes and authenticated acceptance await release. Infra #39 is merged. Activation execution bb288e32-8a7b-487e-8344-976385e56e1d failed in backend tests before deployment: Docker Hub's anonymous PostgreSQL pull limit. Backend #27 prepares the official-registry fix; live activation acceptance remains pending a new source release.
+Seed implementation is merged/released with verified DB idempotency. S1-20 recovery support and sole-admin owner decision are complete. Dev activation prepares native fixture/credential creation; those writes and authenticated acceptance await release. Infra #39 and backend #27 are merged. The first activation failed before deployment at Docker Hub's anonymous PostgreSQL pull limit; the official-registry repair passes all ten CI gates. New activation execution 248fa024-49a0-4ebc-bc76-73a236ca9aaa is in progress. Live acceptance remains pending deployment.
 
 Merged PRs: [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
 
@@ -689,7 +689,7 @@ Sign-in is Google only and SEC-07 forbids a backdoor, so if the single admin's G
 
 **Completion / progress**
 
-Exact Cognito CSP and public runtime config from infra #37/frontend #21 are merged/released. Activation switches dev runtime config to deployed pool/client outputs with no-store; prod remains disabled. Live enabled acceptance awaits release. Infra #39 is merged. Activation execution bb288e32-8a7b-487e-8344-976385e56e1d failed in backend tests before deployment: Docker Hub's anonymous PostgreSQL pull limit. Backend #27 prepares the official-registry fix; live activation acceptance remains pending a new source release.
+Exact Cognito CSP and public runtime config from infra #37/frontend #21 are merged/released. Activation switches dev runtime config to deployed pool/client outputs with no-store; prod remains disabled. Live enabled acceptance awaits release. Infra #39 and backend #27 are merged. The first activation failed before deployment at Docker Hub's anonymous PostgreSQL pull limit; the official-registry repair passes all ten CI gates. New activation execution 248fa024-49a0-4ebc-bc76-73a236ca9aaa is in progress. Live acceptance remains pending deployment.
 
 Merged PRs: [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
 
@@ -856,6 +856,8 @@ Verify that the users row decides admin and supervisor, and that cognito:groups 
 **Completion / progress**
 
 Prepared enabled-dev Playwright tests: real native-client authentication and real Gateway/backend profile responses are relayed into the deployed UI; Google protocol and hosted logout are intercepted. Tokens stay in the runner with private CLI inputs, cleanup/revocation and no trace/screenshots/video. Local protocol/regression and redaction guards are verified. Actual enabled-dev browser runs and the recorded manual Google demo remain pending activation.
+
+Open PRs: [frontend #22](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/22).
 
 **Description**
 
