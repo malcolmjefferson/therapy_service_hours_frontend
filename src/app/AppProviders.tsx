@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { ApiClientProvider, type ApiClient } from '../lib/api';
+import { AuthProvider } from '../lib/auth/AuthProvider';
+import type { AuthSession } from '../lib/auth/session';
 
 /** Builds the app's QueryClient. Tests pass `retry: false` to fail fast. */
 export function createQueryClient(options: { retry?: boolean } = {}): QueryClient {
@@ -21,14 +23,17 @@ export interface AppProvidersProps {
   apiClient: ApiClient;
   queryClient?: QueryClient;
   children: ReactNode;
+  session?: AuthSession | undefined;
 }
 
 /** Cross-cutting services for the whole app (FE-23). */
-export function AppProviders({ apiClient, queryClient, children }: AppProvidersProps) {
+export function AppProviders({ apiClient, queryClient, children, session }: AppProvidersProps) {
   const [client] = useState(() => queryClient ?? createQueryClient());
   return (
     <QueryClientProvider client={client}>
-      <ApiClientProvider client={apiClient}>{children}</ApiClientProvider>
+      <AuthProvider session={session}>
+        <ApiClientProvider client={apiClient}>{children}</ApiClientProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

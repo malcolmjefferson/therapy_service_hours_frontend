@@ -1,5 +1,7 @@
 # therapy_service_hours_frontend
 
+Prepared browser sign-in and paired release instructions: [auth flow](docs/auth-flow.md).
+
 React + TypeScript single-page app (Vite), served from S3 and CloudFront. Part of the **Therapy Service Hours Tracker** (see [CLAUDE.md](CLAUDE.md)).
 
 ## Start here

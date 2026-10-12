@@ -14,12 +14,31 @@ export const API_BASE_PATH = '/api/v1';
  * Creates the API client for `origin`, which is always the page's own origin in the app.
  * openapi-fetch needs an absolute base URL to build requests, so the origin is passed in.
  */
-export function createApiClient(origin: string, fetchImpl?: typeof fetch): ApiClient {
+export function createApiClient(
+  origin: string,
+  fetchImpl?: typeof fetch,
+  auth?: { getIdToken: () => Promise<string | undefined>; invalidate: () => void },
+): ApiClient {
   const options: Parameters<typeof createClient<paths>>[0] = { baseUrl: new URL(API_BASE_PATH, origin).toString() };
   if (fetchImpl) {
     options.fetch = fetchImpl;
   }
-  return createClient<paths>(options);
+  const client = createClient<paths>(options);
+  if (auth)
+    client.use({
+      async onRequest({ request }) {
+        if (new URL(request.url).pathname !== `${API_BASE_PATH}/healthz`) {
+          const token = await auth.getIdToken();
+          if (token) request.headers.set('Authorization', `Bearer ${token}`);
+        }
+        return request;
+      },
+      onResponse({ response }) {
+        if (response.status === 401) auth.invalidate();
+        return response;
+      },
+    });
+  return client;
 }
 
 /** An API call that failed with a problem response, or could not reach the server at all. */

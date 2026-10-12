@@ -1,0 +1,52 @@
+.panel {
+  max-width: 40rem;
+  padding: var(--space-6);
+  border: 1px solid var(--color-ink-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-raised);
+}
+.panel h2 {
+  margin-top: 0;
+}
+.panel p {
+  line-height: 1.5;
+}
+.button {
+  min-height: 44px;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.button:hover {
+  background: var(--color-lime-deep);
+}
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.button:focus-visible,
+.link:focus-visible,
+.account summary:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.account {
+  margin-top: var(--space-4);
+}
+.account summary {
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 600;
+}
