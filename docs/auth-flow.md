@@ -66,8 +66,10 @@ admin role, clear storage and complete sign-out. Native revocation is real; host
 intercepted. This combines native admission with deployed UI behavior and does not claim
 actual Google federation, real hosted-cookie logout or native-token support in the shipped SPA.
 
-S1-13 remains in progress until the native suite runs against enabled dev in the release smoke
-stage and the approved manual Google first/repeat sign-in and logout demo is recorded. The
-first activation attempt failed at the PostgreSQL image pull limit; backend #27's
-registry fix is merged and the replacement release is in progress. Synthetic
-protocol/local tests alone do not satisfy that live acceptance.
+Both native cases passed against enabled deployed dev on 2026-10-12, without skips or
+recordings, in 9.1 seconds. Activation release 248fa024-49a0-4ebc-bc76-73a236ca9aaa succeeded
+after backend #27 repaired the PostgreSQL image pull limit. S1-13 remains in progress until
+this suite is merged into release smoke and the manual Google first/repeat sign-in/logout
+demo is recorded. The real owner Google attempt exposed the case-insensitive provider-prefix
+guard mismatch; backend #28 prepares that fix. Synthetic protocol and native tests do not
+prove real Google federation or hosted-cookie logout.

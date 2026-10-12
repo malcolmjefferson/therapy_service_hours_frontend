@@ -17,9 +17,9 @@ An invited Google account signs in and sees its name and role-based navigation; 
 
 ## Execution status (2026-10-12)
 
-**8 done** · **10 in progress** · **1 in review** · **1 not started**
+**10 done** · **9 in progress** · **1 in review** · **0 not started**
 
-Dev-only activation infra #39 and official-registry build repair backend #27 are merged; prod auth/deploy remain disabled. The first activation failed before deployment at Docker Hub's anonymous pull limit; a new source release is in progress. Core identity and paired browser/Gateway preparation are released; recovery is merged and the owner retains the sole dev admin. Native browser acceptance is prepared, while live native/Google sign-in, measured p99 and the manual demo await activation. Backend #25 remains in review and is kept current with merged work.
+Enabled dev activation succeeded after the merged registry repair. Pool/client/provider/trigger/public-config checks and real native Gateway/browser acceptance pass; Gateway and CSP tickets are done. The owner elected to retain the sole dev admin. Real Google consent/callback exposed a trigger provider-prefix casing bug; backend #28 prepares its regression fix. Native browser automation is in frontend #22, and role-authority verification remains in backend #25. Actual Google first/repeat binding/logout, cold p99 and remaining role-specific acceptance are outstanding. Prod auth/deploy remain disabled.
 
 **Status legend:** done = merged implementation; in progress = partial implementation or remaining acceptance; in review = open PR; not started = implementation has not begun. Completion notes distinguish dev verification from deferred prod/manual acceptance. Acceptance checkboxes are not automatically checked from merge status.
 
@@ -31,9 +31,9 @@ Dev-only activation infra #39 and official-registry build repair backend #27 are
 | [S1-04](#s1-04) | Story | Migration: organizations, users, invitations; seed Default Organization | 1.5 | S0-10 | done |
 | [S1-17](#s1-17) | Task | Read-only database role for the pre-sign-up trigger | 1 | S0-08 | done |
 | [S1-01](#s1-01) | Story | Cognito user pool, Google IdP, app client, hosted UI, secrets and token settings | 2 | S0-15, S1-02 | in progress |
-| [S1-18](#s1-18) | Spike | Spike proof: federated binding and trigger latency measured on dev | 0.5 | S1-01, S1-03 | not started |
+| [S1-18](#s1-18) | Spike | Spike proof: federated binding and trigger latency measured on dev | 0.5 | S1-01, S1-03 | in progress |
 | [S1-03](#s1-03) | Story | PreSignUp Lambda enforcing the invitation allowlist | 1.5 | S1-01, S1-04, S1-17 | in progress |
-| [S1-14](#s1-14) | Task | API Gateway JWT authorizer with a public /healthz route | 1 | S1-01 | in progress |
+| [S1-14](#s1-14) | Task | API Gateway JWT authorizer with a public /healthz route | 1 | S1-01 | done |
 | [S1-15](#s1-15) | Task | Authorizer claims through the Lambda adapter | 0.5 | S0-03 | done |
 | [S1-05](#s1-05) | Task | OpenAPI: /me and the shared Problem responses | 1 | S0-19 | done |
 | [S1-19](#s1-19) | Task | Frontend spec sync and /me handler, released with S1-05 | 0.5 | S1-05 | done |
@@ -42,7 +42,7 @@ Dev-only activation infra #39 and official-registry build repair backend #27 are
 | [S1-08](#s1-08) | Story | GET /me endpoint | 1 | S1-06, S1-07 | in progress |
 | [S1-09](#s1-09) | Task | Seed Lambda: first admin, Default Organization and dev test users | 1 | S1-04, S1-01 | in progress |
 | [S1-20](#s1-20) | Task | Break-glass admin recovery runbook entry | 0.5 | S1-09 | done |
-| [S1-16](#s1-16) | Task | CSP connect-src for the Cognito hosted UI domain | 0.5 | S1-01 | in progress |
+| [S1-16](#s1-16) | Task | CSP connect-src for the Cognito hosted UI domain | 0.5 | S1-01 | done |
 | [S1-10](#s1-10) | Story | Frontend auth: Cognito hosted UI (code + PKCE), AuthProvider, route guards | 2 | S1-01, S1-08, S1-16, S0-19 | in progress |
 | [S1-11](#s1-11) | Story | App shell: header, role-aware nav, landing and access-denied pages | 1.5 | S1-10 | in progress |
 | [S1-12](#s1-12) | Task | Role authority and token staleness: tests and runbook note | 1 | S1-06 | in review |
@@ -193,7 +193,7 @@ Extend the S0-08 role bootstrap with a third IAM role, presignup_ro, that may on
 
 **Completion / progress**
 
-Pool/Google/client implementation from infra #32 is merged. Dev-only activation is prepared after the successful paired Gateway/browser releases; prod auth/deploy remain disabled. Current Google secret and warmed alias prerequisites are verified. Pool creation and actual Google acceptance remain pending the activation release. Infra #39 and backend #27 are merged. The first activation failed before deployment at Docker Hub's anonymous PostgreSQL pull limit; the official-registry repair passes all ten CI gates. New activation execution 248fa024-49a0-4ebc-bc76-73a236ca9aaa is in progress. Live acceptance remains pending deployment.
+Dev pool, Google provider, SPA and dev test client are deployed and resource checks pass in 248fa024-49a0-4ebc-bc76-73a236ca9aaa. Real owner Google consent/callback was attempted but rejected before invitation lookup: Cognito lowercases the Google username prefix in this case-insensitive pool. Backend #28 prepares the verified regression fix. First/repeat federation acceptance remains pending; prod stays disabled.
 
 Merged PRs: [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
 
@@ -233,7 +233,13 @@ CDK auth construct in the data stack (ADR-0009, the pool is stateful): user pool
 | Stories | US-01 |
 | Is blocked by | S1-01, S1-03 |
 | Blocks | - |
-| Status (2026-10-12) | not started |
+| Status (2026-10-12) | in progress |
+
+**Completion / progress**
+
+Live owner Google attempt exposed the case-insensitive provider-prefix bug, reproduced with a still-pending fictional supervisor invitation. Native/resource acceptance passes. 100 direct synthetic alias invocations produced expected admission outcomes; excluding one initialization-containing log tail leaves 99 warm samples with REPORT p50 3.03 ms, p95 43.17 ms and p99/max 54.37 ms. This is not actual federation or cold p99 proof; real first/repeat binding and representative cold measurements remain pending.
+
+Open PRs: [backend #28](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/28).
 
 **Description**
 
@@ -271,9 +277,9 @@ Second half of the spike, once the pool exists. Prove on dev what ADR-0007 and A
 
 **Completion / progress**
 
-Backend trigger and infra attachment are merged. Latest preflight live alias version 3 is READY at 1/1; synthetic external-provider invited admission passes and uninvited denies SIGN_UP_NOT_ALLOWED. Dev activation is prepared; actual federation and measured p99 remain S1-18 acceptance. Infra #39 and backend #27 are merged. The first activation failed before deployment at Docker Hub's anonymous PostgreSQL pull limit; the official-registry repair passes all ten CI gates. New activation execution 248fa024-49a0-4ebc-bc76-73a236ca9aaa is in progress. Live acceptance remains pending deployment.
+Warmed live alias and pool-scoped attachment are deployed; real owner sign-in exposed the uppercase-only Google prefix guard. Paired synthetic pending-supervisor events prove Google_ allows and google_ denies on version 3. Backend #28 compares only the provider prefix without case sensitivity, preserving username, verified email, invitation checks and response flags. Actual Google acceptance awaits its release.
 
-Merged PRs: [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
+Open PRs: [backend #28](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/28).
 
 **Description**
 
@@ -291,7 +297,7 @@ VPC Lambda trigger connecting as presignup_ro with RDS IAM auth; rejects emails 
 
 **Definition of Done**
 
-- [x] Implementation merged
+- [ ] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -311,13 +317,13 @@ VPC Lambda trigger connecting as presignup_ro with RDS IAM auth; rejects emails 
 | Stories | US-01, US-42 |
 | Is blocked by | S1-01 |
 | Blocks | S1-06 |
-| Status (2026-10-12) | in progress |
+| Status (2026-10-12) | done |
 
 **Completion / progress**
 
-Gateway implementation from infra #37 is merged/released. Dev activation is prepared with exactly one public health route, issuer/SPA+dev-test audiences and scoped native token checks. Live authenticated Gateway acceptance awaits the activation release. Infra #39 and backend #27 are merged. The first activation failed before deployment at Docker Hub's anonymous PostgreSQL pull limit; the official-registry repair passes all ten CI gates. New activation execution 248fa024-49a0-4ebc-bc76-73a236ca9aaa is in progress. Live acceptance remains pending deployment.
+Dev activation 248fa024-49a0-4ebc-bc76-73a236ca9aaa succeeded after the official-registry repair. Live Gateway/native smoke passes invited /me 200, uninvited 403, authenticated unknown 404 and unauthenticated 401; health remains public. Exactly one public route, issuer/audiences and scoped reader are asserted. Actual Google federation is separate and needs backend #28's lowercase-provider fix.
 
-Merged PRs: [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
+Merged PRs: [infra #37](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/37), [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39), [backend #27](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/27).
 
 **Description**
 
@@ -482,7 +488,7 @@ The drift gate compares the pinned spec to the backend spec byte for byte (scrip
 
 **Completion / progress**
 
-Backend #24 is merged and released in successful dev execution af3e6963-7cf5-4857-bfc8-c0a524ba1355. Transactional actor resolution/binding, current database roles/status and the lazy two-connection IAM pool pass race/PostgreSQL/privacy checks. Auth stays disabled; actual Gateway/native/Google token acceptance remains with S1-14 and activation.
+Backend identity/binding is merged and released. Real native tokens resolve invited profiles and deny uninvited accounts; transactional and privacy/race tests pass. Real Google first/repeat binding remains pending the trigger prefix repair in backend #28.
 
 Merged PRs: [backend #24](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/24).
 
@@ -565,7 +571,7 @@ Central policy package: Actor type, role predicates, relationship checks interfa
 
 **Completion / progress**
 
-Backend #24 is merged and released. The explicit /me DTO, no-store JSON and stable 401/403 problems pass schema/privacy tests; deployed unauthenticated /me returns 401 problem+json. Actual authenticated Gateway acceptance remains pending with activation.
+Backend profile endpoint is merged/released and passes actual native-token 200/403 with the explicit DTO and no-store behavior. The invited name renders in the deployed UI and uninvited users see access denied. Real Google owner profile acceptance awaits backend #28.
 
 Merged PRs: [backend #24](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/24).
 
@@ -606,9 +612,9 @@ Returns the current user's profile, roles and organization via a dedicated DTO.
 
 **Completion / progress**
 
-Seed implementation is merged/released with verified DB idempotency. S1-20 recovery support and sole-admin owner decision are complete. Dev activation prepares native fixture/credential creation; those writes and authenticated acceptance await release. Infra #39 and backend #27 are merged. The first activation failed before deployment at Docker Hub's anonymous PostgreSQL pull limit; the official-registry repair passes all ten CI gates. New activation execution 248fa024-49a0-4ebc-bc76-73a236ca9aaa is in progress. Live acceptance remains pending deployment.
+Database seed/admin invitation and three native dev fixtures are deployed. Native profiles and uninvited denial pass against real Gateway; recovery support/sole-admin decision are merged. Database repeat idempotency is verified; a subsequent enabled release must confirm native repeat counts remain zero. First real admin binding awaits the Google prefix repair.
 
-Merged PRs: [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
+Merged PRs: [backend #23](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/23), [infra #35](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/35), [infra #36](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/36), [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
 
 **Description**
 
@@ -685,13 +691,13 @@ Sign-in is Google only and SEC-07 forbids a backdoor, so if the single admin's G
 | Stories | US-01 |
 | Is blocked by | S1-01 |
 | Blocks | S1-10 |
-| Status (2026-10-12) | in progress |
+| Status (2026-10-12) | done |
 
 **Completion / progress**
 
-Exact Cognito CSP and public runtime config from infra #37/frontend #21 are merged/released. Activation switches dev runtime config to deployed pool/client outputs with no-store; prod remains disabled. Live enabled acceptance awaits release. Infra #39 and backend #27 are merged. The first activation failed before deployment at Docker Hub's anonymous PostgreSQL pull limit; the official-registry repair passes all ten CI gates. New activation execution 248fa024-49a0-4ebc-bc76-73a236ca9aaa is in progress. Live acceptance remains pending deployment.
+Released in successful enabled-dev activation 248fa024-49a0-4ebc-bc76-73a236ca9aaa. Exact Cognito CSP and no-store public issuer/client/callback/logout settings are verified, with no credential fields. Release header/browser checks and native dev browser flows pass. Prod remains disabled.
 
-Merged PRs: [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39).
+Merged PRs: [infra #37](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/37), [infra #39](https://github.com/malcolmjefferson/therapy_service_hours_infra/pull/39), [frontend #21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21).
 
 **Description**
 
@@ -855,7 +861,7 @@ Verify that the users row decides admin and supervisor, and that cognito:groups 
 
 **Completion / progress**
 
-Prepared enabled-dev Playwright tests: real native-client authentication and real Gateway/backend profile responses are relayed into the deployed UI; Google protocol and hosted logout are intercepted. Tokens stay in the runner with private CLI inputs, cleanup/revocation and no trace/screenshots/video. Local protocol/regression and redaction guards are verified. Actual enabled-dev browser runs and the recorded manual Google demo remain pending activation.
+Frontend #22 prepares the release native-browser cases and passes all CI checks. Both native cases ran successfully against enabled dev: real Gateway/backend invited 200 and uninvited 403 relayed unchanged into deployed UI, native revocation, safe storage and no token-group role elevation. Google protocol/hosted logout are intercepted; no auth bypass is shipped. Release automation after merge and recorded real Google first/repeat sign-in/logout remain pending the prefix repair.
 
 Open PRs: [frontend #22](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/22).
 
