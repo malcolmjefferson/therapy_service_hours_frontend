@@ -46,6 +46,155 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the service categories, grouped for the entry form
+         * @description Lookup data (FR-LOG-07): the 12 categories in display order, grouped Direct Service,
+         *     Indirect Service and Supervision. The list changes rarely, so the response is cacheable
+         *     by the browser. It is not paginated because it is small and fixed.
+         */
+        get: operations["listCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the current user's saved clients
+         * @description Only the caller's own clients are returned, ordered by name (case-insensitive), then `id`.
+         */
+        get: operations["listClients"];
+        put?: never;
+        /**
+         * Save a new client
+         * @description Names are unique per user, ignoring case. If the name is already saved, the API returns
+         *     **409** with problem type `urn:therapy-service-hours:problem:client-name-taken` and the
+         *     existing client in `existing_client`, so the form can select it instead. It does not
+         *     silently return the existing client.
+         */
+        post: operations["createClient"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Client identifier. */
+                clientId: components["parameters"]["ClientId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete one of the caller's clients
+         * @description A client that no entry uses is deleted. If entries use it and `confirm_detach` is not
+         *     `true`, the API returns **409** `urn:therapy-service-hours:problem:client-in-use` with
+         *     `entry_count`, so the UI can ask for confirmation. With `confirm_detach=true` the client is
+         *     removed from those entries and deleted. Another user's client is `404`.
+         */
+        delete: operations["deleteClient"];
+        options?: never;
+        head?: never;
+        /**
+         * Rename one of the caller's clients
+         * @description A name that another of the caller's clients already uses (ignoring case) returns **409**
+         *     `urn:therapy-service-hours:problem:client-name-taken`. Changing only the letter case of the
+         *     client's own name is allowed. Another user's client is `404`.
+         */
+        patch: operations["renameClient"];
+        trace?: never;
+    };
+    "/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the caller's own entries
+         * @description Filters combine with AND. `client` is a case-insensitive substring match against the
+         *     names of the clients on an entry; `%`, `_` and `\` in it match literally (SEC-20 to SEC-25).
+         *     `sort` and `dir` take only the listed values, anything else is **400**. The default order is
+         *     newest first (`session_date` descending, then start time descending). Sorting by `category`
+         *     orders by category group, then category name. Ties are broken by `id`, so pages are stable.
+         */
+        get: operations["listEntries"];
+        put?: never;
+        /**
+         * Log a new entry
+         * @description The server calculates `duration_minutes` and `hours` from the times; a request that sends
+         *     either (or any other unknown field) is **400** (FR-LOG-02). The new entry is `pending`.
+         *     A session that overlaps another of the caller's non-rejected sessions is **409**
+         *     `urn:therapy-service-hours:problem:entry-overlap`, naming the clashing session in
+         *     `conflicting_entry`. Repeating a request with the same `Idempotency-Key` and body returns
+         *     the original result.
+         */
+        post: operations["createEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries/{entryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Entry identifier. */
+                entryId: components["parameters"]["EntryId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Read one of the caller's entries
+         * @description Another user's entry is `404`, never `403`, so its existence is not disclosed.
+         */
+        get: operations["getEntry"];
+        /**
+         * Replace one of the caller's pending or rejected entries
+         * @description Replaces every editable field, so omitted optional fields return to their defaults. Saving
+         *     an edited `rejected` entry sets it back to `pending`. An `approved` entry is locked and
+         *     returns **409** `urn:therapy-service-hours:problem:entry-locked`. An overlap returns **409**
+         *     `urn:therapy-service-hours:problem:entry-overlap`. Another user's entry is `404`.
+         */
+        put: operations["updateEntry"];
+        post?: never;
+        /**
+         * Delete one of the caller's pending or rejected entries
+         * @description An `approved` entry is locked and returns **409** `urn:therapy-service-hours:problem:entry-locked`.
+         *     Another user's entry is `404`.
+         */
+        delete: operations["deleteEntry"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -64,6 +213,140 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+        };
+        /**
+         * @description The group a category belongs to. It decides which goals the hours count toward.
+         * @enum {string}
+         */
+        CategoryGroup: "direct" | "indirect" | "supervision";
+        CategoryListResponse: {
+            /** @description Groups in display order, each with its categories in display order. */
+            groups: components["schemas"]["CategoryGroupSection"][];
+        };
+        CategoryGroupSection: {
+            group: components["schemas"]["CategoryGroup"];
+            /** @description Display name, for example `Direct Service`. */
+            label: string;
+            categories: components["schemas"]["Category"][];
+        };
+        Category: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        /** @description The category of an entry, with its group, so the table needs no second lookup. */
+        CategoryRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            group: components["schemas"]["CategoryGroup"];
+        };
+        Client: {
+            /** Format: uuid */
+            id: string;
+            /** @description Pseudonym or initials only (CLAUDE.md section 0.7). */
+            name: string;
+        };
+        /** @description Create or rename a client. Unknown fields are rejected. */
+        ClientRequest: {
+            /** @description Pseudonym or initials only. Unique per user, ignoring case. */
+            name: string;
+        };
+        ClientListResponse: {
+            items: components["schemas"]["Client"][];
+            page: components["schemas"]["PageInfo"];
+        };
+        /**
+         * @description Local clock time `HH:MM` with no timezone, on the session date.
+         * @example 09:30
+         */
+        SessionTime: string;
+        /** @enum {string} */
+        EntryStatus: "pending" | "approved" | "rejected";
+        /**
+         * @description One of the caller's own entries. This is the owner's view only; peer and supervisor views
+         *     use their own schemas and never reference this one (ARC-18).
+         */
+        Entry: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            session_date: string;
+            start_time?: components["schemas"]["SessionTime"];
+            end_time?: components["schemas"]["SessionTime"];
+            /**
+             * Format: int32
+             * @description Calculated by the server from the times; never sent in a request.
+             */
+            duration_minutes: number;
+            /**
+             * Format: double
+             * @description Calculated by the server, `duration_minutes / 60`, shown to two decimals. Never sent in a request.
+             */
+            hours: number;
+            category: components["schemas"]["CategoryRef"];
+            /** @description The saved clients on this entry, ordered by name. */
+            clients: components["schemas"]["Client"][];
+            on_site: boolean;
+            /** @description Pseudonyms or initials only. Absent when there are no notes. */
+            notes?: string;
+            status: components["schemas"]["EntryStatus"];
+            /** @description True for entries imported without times; `start_time` and `end_time` are then absent. */
+            needs_time: boolean;
+            /** @description The reviewer's reason, present on a rejected entry. */
+            review_note?: string;
+            /** Format: date-time */
+            reviewed_at?: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        /**
+         * @description The editable fields of an entry, for create and for full replacement on update. There is no
+         *     `hours` or `duration_minutes`: the server calculates them, and unknown fields are rejected
+         *     (FR-LOG-02). Times are in 15-minute steps, the end is after the start, and a session does
+         *     not cross midnight, so `end_time` is at most `23:45`.
+         */
+        EntryRequest: {
+            /** Format: date */
+            session_date: string;
+            start_time: components["schemas"]["SessionTime"];
+            end_time: components["schemas"]["SessionTime"];
+            /** Format: uuid */
+            category_id: string;
+            /** @description Saved clients on this entry; all must belong to the caller. Defaults to none. */
+            client_ids?: string[];
+            /** @default false */
+            on_site: boolean;
+            /** @description Pseudonyms or initials only; supervisors can read notes. */
+            notes?: string;
+        };
+        EntryListResponse: {
+            items: components["schemas"]["Entry"][];
+            page: components["schemas"]["PageInfo"];
+        };
+        /** @description The caller's own session that an overlapping request clashes with. */
+        ConflictingEntry: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            session_date: string;
+            start_time: components["schemas"]["SessionTime"];
+            end_time: components["schemas"]["SessionTime"];
+        };
+        /** @description A 409 Problem for an entry. `conflicting_entry` is present only for `entry-overlap`. */
+        EntryConflictProblem: components["schemas"]["Problem"] & {
+            conflicting_entry?: components["schemas"]["ConflictingEntry"];
+        };
+        /**
+         * @description A 409 Problem for a client. `existing_client` is present only for `client-name-taken`;
+         *     `entry_count` only for `client-in-use`.
+         */
+        ClientConflictProblem: components["schemas"]["Problem"] & {
+            existing_client?: components["schemas"]["Client"];
+            /** Format: int32 */
+            entry_count?: number;
         };
         GatewayUnauthorized: {
             message: string;
@@ -140,6 +423,46 @@ export interface components {
                 "application/problem+json": components["schemas"]["Problem"];
             };
         };
+        /**
+         * @description The request is invalid: a field is missing, malformed or out of range, an unknown field was
+         *     sent (for example `hours`), or a query parameter is not allowed. `errors` lists the fields.
+         */
+        BadRequest: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
+        /**
+         * @description The entry cannot be saved in its current state. `type` is
+         *     `urn:therapy-service-hours:problem:entry-overlap` (the session overlaps another of the
+         *     caller's non-rejected sessions; `conflicting_entry` names it) or
+         *     `urn:therapy-service-hours:problem:entry-locked` (the entry is approved and cannot change).
+         */
+        EntryConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["EntryConflictProblem"];
+            };
+        };
+        /**
+         * @description `type` is `urn:therapy-service-hours:problem:client-name-taken` (another of the caller's
+         *     clients has that name, ignoring case; `existing_client` is that client) or
+         *     `urn:therapy-service-hours:problem:client-in-use` (entries still use the client;
+         *     `entry_count` says how many; repeat with `confirm_detach=true` to delete it anyway).
+         */
+        ClientConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["ClientConflictProblem"];
+            };
+        };
         /** @description An error, as RFC 7807 problem details. */
         Problem: {
             headers: {
@@ -157,6 +480,10 @@ export interface components {
         PageSize: number;
         /** @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). */
         IdempotencyKey: string;
+        /** @description Entry identifier. */
+        EntryId: string;
+        /** @description Client identifier. */
+        ClientId: string;
     };
     requestBodies: never;
     headers: never;
@@ -220,6 +547,314 @@ export interface operations {
                     "application/json": components["schemas"]["HealthResponse"];
                 };
             };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The categories, grouped, in display order. */
+            200: {
+                headers: {
+                    /** @description Cacheable by the user's browser only, for example `private, max-age=3600`. */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listClients: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: components["parameters"]["Page"];
+                /** @description Items per page (GO-56, ARC-16). */
+                page_size?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of the caller's clients. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createClient: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientRequest"];
+            };
+        };
+        responses: {
+            /** @description The client was created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Client"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["ClientConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteClient: {
+        parameters: {
+            query?: {
+                /** @description Set to `true` to delete a client that entries still use, detaching it from them. */
+                confirm_detach?: boolean;
+            };
+            header?: never;
+            path: {
+                /** @description Client identifier. */
+                clientId: components["parameters"]["ClientId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The client was deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["ClientConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    renameClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Client identifier. */
+                clientId: components["parameters"]["ClientId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientRequest"];
+            };
+        };
+        responses: {
+            /** @description The renamed client. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Client"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["ClientConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listEntries: {
+        parameters: {
+            query?: {
+                /** @description Only entries whose category is in this group. */
+                group?: components["schemas"]["CategoryGroup"];
+                /** @description Only entries with a client whose name contains this text, ignoring case. */
+                client?: string;
+                /** @description Earliest `session_date`, inclusive. */
+                from?: string;
+                /** @description Latest `session_date`, inclusive. Must not be before `from`. */
+                to?: string;
+                /** @description Column to sort by. */
+                sort?: "session_date" | "category" | "client" | "hours" | "on_site";
+                /** @description Sort direction. */
+                dir?: "asc" | "desc";
+                /** @description 1-based page number. */
+                page?: components["parameters"]["Page"];
+                /** @description Items per page (GO-56, ARC-16). */
+                page_size?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of the caller's entries. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createEntry: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntryRequest"];
+            };
+        };
+        responses: {
+            /** @description The entry was created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Entry"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["EntryConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Entry identifier. */
+                entryId: components["parameters"]["EntryId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The entry. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Entry"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Entry identifier. */
+                entryId: components["parameters"]["EntryId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntryRequest"];
+            };
+        };
+        responses: {
+            /** @description The updated entry. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Entry"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["EntryConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Entry identifier. */
+                entryId: components["parameters"]["EntryId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The entry was deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["EntryConflict"];
             default: components["responses"]["Problem"];
         };
     };
