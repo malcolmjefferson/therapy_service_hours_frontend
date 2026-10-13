@@ -69,7 +69,10 @@ actual Google federation, real hosted-cookie logout or native-token support in t
 Both native cases passed against enabled deployed dev on 2026-10-12, without skips or
 recordings, in 9.1 seconds. Activation release 248fa024-49a0-4ebc-bc76-73a236ca9aaa succeeded
 after backend #27 repaired the PostgreSQL image pull limit. S1-13 remains in progress until
-this suite is merged into release smoke and the manual Google first/repeat sign-in/logout
-demo is recorded. The real owner Google attempt exposed the case-insensitive provider-prefix
-guard mismatch; backend #28 prepares that fix. Synthetic protocol and native tests do not
-prove real Google federation or hosted-cookie logout.
+this suite is merged into release smoke and the remaining denial demo is performed.
+Backend #28 repaired the case-insensitive provider-prefix guard and released successfully
+in `11d38ada-a392-471f-bf45-81592cedf9a5`. The owner reported successful real Google
+sign-in; separate browser verification observed the admin profile, actual hosted logout
+to the signed-out landing, repeat sign-in and page-reload reauthentication. Proof screenshots
+remain local, outside this public repository. Actual Google uninvited/deactivated acceptance
+remains open; synthetic protocol and native tests do not replace those checks.

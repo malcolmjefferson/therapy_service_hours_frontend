@@ -6,8 +6,8 @@
 ## Summary (2026-10-10)
 
 - **Slice S0 (walking skeleton):** 7 done, 0 in review, 0 in progress, 0 not started (of 7 tickets touching this repo).
-- **AWS:** dev data stack deployed 2026-10-10. The SPA reaches dev (S3 and CloudFront) with the first pipeline run.
-- **S1:** execution started; ADR-0008–0011 accepted by the owner on 2026-10-11.
+- **AWS:** enabled dev release 11d38ada-a392-471f-bf45-81592cedf9a5 succeeded on 2026-10-12; production remains deferred to M3.
+- **S1:** enabled dev release verified; real owner Google sign-in, repeat sign-in, hosted logout and reload pass. Remaining evidence and open PRs are listed below.
 
 ## Tickets
 
@@ -23,14 +23,14 @@
 
 Statuses: **not started**, **in progress**, **in review** (PR open), **done** (merged to main).
 
-## S1 execution (2026-10-11)
+## S1 execution (2026-10-12)
 
-| ID    | Title                      | Status | PRs                                                                               | Notes                                                                                                                     |
-| ----- | -------------------------- | ------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| S1-02 | Auth design decisions      | done   | [#18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18) | Owner accepted ADR-0008–0011 on 2026-10-11. Live federation and latency proof remain S1-18.                               |
-| S1-19 | Frontend /me contract sync | done   | [#19](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/19) | All 26 tests, typecheck, lint, format, build and API drift pass. Merge with backend S1-05 without an intervening release. |
+| ID    | Title                      | Status | PRs                                                                               | Notes                                                                                                                                                                                       |
+| ----- | -------------------------- | ------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1-02 | Auth design decisions      | done   | [#18](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/18) | Owner accepted ADR-0008–0011 on 2026-10-11; decisions are merged in all three repositories. Live binding and latency proof are separate S1-18 acceptance work.                              |
+| S1-19 | Frontend /me contract sync | done   | [#19](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/19) | Frontend /me spec, generated types and test handler are merged and released with backend S1-05. The API drift gate and frontend tests pass; real endpoint/auth UI work remains S1-08/S1-10. |
 
-| S1-10 | Browser PKCE authentication | in progress | [#21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21) | Prepared state/nonce/verifier transaction, memory-only tokens, refresh, revocation/logout and 401/403 handling. Intercepted browser tests pass; real Google acceptance follows activation. |
-| S1-11 | Account, landing and access-denied views | in progress | [#21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21) | Themed landing/profile, accessible account menu and safe access-denied page are prepared. Role-specific future feature navigation and actual dev acceptance remain pending. |
+| S1-10 | Browser PKCE authentication | done | [#21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21) | Frontend #21 is merged and deployed. Actual Google admin sign-in, hosted logout to the signed-out landing, repeat sign-in and page-reload reauthentication were observed on dev after backend #28. Memory-only tokens, state/nonce/PKCE, callback cleanup, refresh/revocation and error handling have automated coverage. Native runner refresh-token revocation is verified separately; no real owner credential was recorded. |
+| S1-11 | Account, landing and access-denied views | in progress | [#21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21) | Deployed landing, admin profile, account menu and signed-out view were verified with the real owner Google account. Native denial and accessibility cases pass. Navigation for future role-specific feature pages remains pending with those features. |
 | S1-16 | Cognito connection policy and runtime settings | done | [#21](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/21) | Released in successful enabled-dev activation 248fa024-49a0-4ebc-bc76-73a236ca9aaa. Exact Cognito CSP and no-store public issuer/client/callback/logout settings are verified, with no credential fields. Release header/browser checks and native dev browser flows pass. Prod remains disabled. |
-| S1-13 | Native-client browser acceptance | in progress | [#22](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/22) | Frontend #22 prepares the release native-browser cases and passes all CI checks. Both native cases ran successfully against enabled dev: real Gateway/backend invited 200 and uninvited 403 relayed unchanged into deployed UI, native revocation, safe storage and no token-group role elevation. Google protocol/hosted logout are intercepted; no auth bypass is shipped. Release automation after merge and recorded real Google first/repeat sign-in/logout remain pending the prefix repair. |
+| S1-13 | Native-client browser acceptance | in progress | [#22](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/22) | Frontend #22 prepares release native-browser automation. Both native cases passed against deployed dev: real Gateway invited 200 and uninvited 403 relayed unchanged to the UI, revocation, safe storage and no token-group elevation. Actual owner Google first sign-in was reported successful; repeat sign-in, hosted logout and reload were observed and recorded locally after backend #28. Release automation awaits merge; real uninvited/deactivated Google demo remains outstanding. |
