@@ -10,6 +10,10 @@
   --color-ink-soft: #7d6a54;
   --color-paper: #fbf8f1;
   --color-raised: #fff;
+  /* Badge tints: gold, lime and red washes under the deep text colors. */
+  --color-gold-tint: #f5e2ab;
+  --color-lime-tint: #e2efa6;
+  --color-red-tint: #f6cfc5;
   --color-primary: #283407;
   --color-on-primary: #fff;
 
@@ -24,6 +28,8 @@
   --space-4: 1rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
+
+  --duration-fast: 150ms;
 
   --radius-sm: 6px;
   --radius-md: 12px;

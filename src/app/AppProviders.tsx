@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
+import { ToastProvider } from '../components';
 import { ApiClientProvider, type ApiClient } from '../lib/api';
 import { AuthProvider } from '../lib/auth/AuthProvider';
 import type { AuthSession } from '../lib/auth/session';
@@ -32,7 +33,9 @@ export function AppProviders({ apiClient, queryClient, children, session }: AppP
   return (
     <QueryClientProvider client={client}>
       <AuthProvider session={session}>
-        <ApiClientProvider client={apiClient}>{children}</ApiClientProvider>
+        <ApiClientProvider client={apiClient}>
+          <ToastProvider>{children}</ToastProvider>
+        </ApiClientProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
