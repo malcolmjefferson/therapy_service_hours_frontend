@@ -31,7 +31,16 @@ export const defaultHandlers: Record<string, HttpHandler> = {
 };
 
 /** Spec paths that intentionally have no default handler, each with a reason. */
-export const handlerExemptions: Record<string, string> = {};
+export const handlerExemptions: Record<string, string> = {
+  // Pinned with backend S2-03. Each gets a typed handler in the story whose code first calls it.
+  '/categories':
+    'No frontend code calls it yet; the category query lands with the entry form wiring (S2-11 follow-up).',
+  '/clients': 'No frontend code calls it yet; the client picker (S2-12) adds the handler.',
+  '/clients/{clientId}': 'No frontend code calls it yet; the client picker (S2-12) adds the handler.',
+  '/entries':
+    'No frontend code calls it yet; the entry form wiring (S2-11 follow-up) and the table (S2-13) add the handler.',
+  '/entries/{entryId}': 'No frontend code calls it yet; edit and delete (S2-15) add the handler.',
+};
 
 /** A problem+json response, typed against the spec's Problem schema. */
 export function problemResponse(problem: Problem) {
