@@ -3,11 +3,11 @@
 > Ticket status for this repo. Updated in the same PR that changes a ticket's state (CLAUDE.md §0.10).
 > Tickets: `docs/jira/`. Other repos: [backend](https://github.com/malcolmjefferson/therapy_service_hours_backend/blob/main/STATUS.md), [infra](https://github.com/malcolmjefferson/therapy_service_hours_infra/blob/main/STATUS.md).
 
-## Summary (2026-10-12)
+## Summary (2026-10-13)
 
 - **Slice S0 (walking skeleton):** 7 done, 0 in review, 0 in progress, 0 not started (of 7 tickets touching this repo).
 - **AWS:** enabled dev release 11d38ada-a392-471f-bf45-81592cedf9a5 succeeded on 2026-10-12; production remains deferred to M3.
-- **S1:** Enabled dev release 7969a830-cd94-41da-bf97-6693b389e17d succeeded with backend #29 and merged frontend #22. Both native browser cases pass in pipeline smoke; repeated seed creates/renews nothing. Real Google owner sign-in/repeat/logout/reload and unchanged persisted binding counts are verified. A separate real uninvited Google account is refused and remains absent from Cognito. S1-13 is complete. The owner reports the deactivated-account slice demo passed on dev with a second real Google account (2026-10-13). Representative cold p99 and future role-specific navigation acceptance remain open. The owner retains the sole dev admin; prod auth/deploy remain disabled.
+- **S1:** Enabled dev release 7969a830-cd94-41da-bf97-6693b389e17d succeeded with backend #29 and merged frontend #22. Both native browser cases pass in pipeline smoke; repeated seed creates/renews nothing. Real Google owner sign-in/repeat/logout/reload and unchanged persisted binding counts are verified. A separate real uninvited Google account is refused and remains absent from Cognito. S1-13 is complete. The owner reports the deactivated-account slice demo passed on dev with a second real Google account (2026-10-13). Cold-start evidence from the existing dev logs is recorded in ADR-0007 and accepted by the owner; it is not an on-demand p99. Future role-specific navigation acceptance (S1-11) remains open. The owner retains the sole dev admin; prod auth/deploy remain disabled.
 
 ## Tickets
 
@@ -23,7 +23,7 @@
 
 Statuses: **not started**, **in progress**, **in review** (PR open), **done** (merged to main).
 
-## S1 execution (2026-10-12)
+## S1 execution (2026-10-13)
 
 | ID    | Title                                          | Status      | PRs                                                                               | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ----- | ---------------------------------------------- | ----------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
