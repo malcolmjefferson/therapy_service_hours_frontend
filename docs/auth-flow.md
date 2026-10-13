@@ -41,3 +41,38 @@ callback denial, forbidden profiles, no persistent tokens and no role grant from
 Accessibility tests have no serious/critical violations. Those tests do not claim actual Google
 federation or replace S1-13's live native-client acceptance. Pool activation and the owner's real
 Google sign-in/sign-out demonstration follow both reviewed preparation releases.
+
+## Dev native-token browser acceptance (S1-13)
+
+The dev release already passes the fixed native-client inputs to the Playwright step:
+`APP_ENV`, `AUTH_ENABLED`, `SMOKE_URL`, `USER_POOL_ID`, `TEST_CLIENT_ID`,
+`TEST_CREDENTIALS_ARN` and the scoped `SMOKE_READER_ROLE_ARN`. The new native suite
+runs only for enabled dev. Ordinary local/PR runs skip it without reading AWS credentials;
+production runs never use this client. No application bundle or auth backdoor is added.
+
+The Node runner verifies the dev test client's identity, obtains the managed password through
+the existing read-only role, and authenticates the two fixed synthetic users. AWS CLI inputs
+stay in private temporary files, outputs are captured, raw errors are redacted, and temporary
+files are removed. Tokens remain in runner memory; trace, screenshot and video recording are
+disabled for these tests. A refresh token is revoked in cleanup even after browser failure.
+
+Google authorize/token redirects are intercepted with a fictional state/nonce protocol token.
+Native password tokens cannot satisfy the SPA's first-exchange OAuth nonce or SPA audience.
+Only the exact same-origin `/api/v1/me` request is relayed using the real native ID token,
+without redirect forwarding. Gateway and the backend validate that real token and return the
+real profile/problem response; neither admission nor roles are mocked. The deployed browser
+must render Test Invited for 200, show access denied for 403, grant no fictional token-group
+admin role, clear storage and complete sign-out. Native revocation is real; hosted logout is
+intercepted. This combines native admission with deployed UI behavior and does not claim
+actual Google federation, real hosted-cookie logout or native-token support in the shipped SPA.
+
+Both native cases passed against enabled deployed dev on 2026-10-12, without skips or
+recordings, in 9.1 seconds. Activation release 248fa024-49a0-4ebc-bc76-73a236ca9aaa succeeded
+after backend #27 repaired the PostgreSQL image pull limit. S1-13 remains in progress until
+this suite is merged into release smoke and the remaining denial demo is performed.
+Backend #28 repaired the case-insensitive provider-prefix guard and released successfully
+in `11d38ada-a392-471f-bf45-81592cedf9a5`. The owner reported successful real Google
+sign-in; separate browser verification observed the admin profile, actual hosted logout
+to the signed-out landing, repeat sign-in and page-reload reauthentication. Proof screenshots
+remain local, outside this public repository. Actual Google uninvited/deactivated acceptance
+remains open; synthetic protocol and native tests do not replace those checks.

@@ -1,8 +1,8 @@
 {
-  "updated": "2026-10-11",
+  "updated": "2026-10-12",
   "slices": {
     "S0": "All 21 implementation tickets are merged. Dev delivery is verified by successful pipeline executions, including release `7c97ec40-371c-4387-8c26-817c75450d4c` (data, migration, app, web, frontend sync and smoke). The owner deferred production deployment to M3; production execution, the recorded/manual failure-injection demo and SNS email receipt are not claimed by this update.",
-    "S1": "The accepted plan contains 20 tickets. ADRs, schema, read-only trigger role, claims adapter, profile contracts and central authorization policies are merged. Backend identity/profile implementation is released; database seed idempotency and synthetic admission are verified. Gateway protection, CSP/runtime settings and browser PKCE sign-in are prepared for paired review. Auth remains disabled. Native fixture creation, real Google federation, measured p99, live E2E and the remaining role-specific shell work are outstanding."
+    "S1": "Backend #28 is merged and deployed in successful release 11d38ada-a392-471f-bf45-81592cedf9a5. The owner successfully tested real Google sign-in; browser verification confirms the admin profile, hosted logout, repeat sign-in and reload reauthentication. Repeat enabled seed creates/renews nothing. Native Gateway/browser cases pass. Backend #25 role-authority review and frontend #22 release browser automation remain open. Representative cold p99, exact real-owner binding evidence and real Google uninvited/deactivated demo remain outstanding. The owner retains the sole dev admin; prod auth/deploy remain disabled."
   },
   "tickets": {
     "S0-01": {
@@ -182,11 +182,13 @@
       ]
     },
     "S1-01": {
-      "status": "in progress",
-      "notes": "Cognito pool, Google IdP, clients and typed configuration are merged and synth-tested. The dev secret, matching Google client ID and saved redirect URI were verified. Read-only review verified the three basic identity scopes and External/Testing audience. Auth is disabled and no pool is deployed; activation and live federation verification remain.",
+      "status": "done",
+      "notes": "Dev pool, Google provider, SPA and test client pass resource checks. Backend #28 is merged and released in 11d38ada-a392-471f-bf45-81592cedf9a5; live trigger alias is version 4. Owner reported successful real Google sign-in, and browser verification confirms admin profile, repeat sign-in after hosted logout and reload reauthentication. Prod remains disabled.",
       "prs": [
-        "infra/32"
-      ]
+        "infra/39",
+        "backend/28"
+      ],
+      "merged": true
     },
     "S1-02": {
       "status": "done",
@@ -199,11 +201,11 @@
     },
     "S1-03": {
       "status": "in progress",
-      "notes": "Backend and infra are merged and released in dev execution 7c97ec40-371c-4387-8c26-817c75450d4c. The arm64 live alias is READY with reserved concurrency 1 and provisioned concurrency 1/1. A synthetic uninvited Google event returned SIGN_UP_NOT_ALLOWED; the decision log had only safe fields and no email. Policy and PostgreSQL tests pass. The single 66 ms sample is not p99 proof; actual federated acceptance and measured cold/warm p99 remain. The pipeline build-list bootstrap issue was repaired before release. Two provisioned cold initialization samples were 2805.16 and 3057.93 ms; these small samples do not establish p99.",
+      "notes": "Backend #28 is merged and deployed on live version 4. Real owner Google admission now passes; verified-email and database invitation authority remain unchanged. Policy/privacy/PostgreSQL tests and previous warm admission samples pass. Representative cold-start p99 and additional real Google denial acceptance remain outstanding in S1-18.",
       "prs": [
-        "backend/22",
-        "infra/33"
-      ]
+        "backend/28"
+      ],
+      "merged": true
     },
     "S1-04": {
       "status": "done",
@@ -242,19 +244,20 @@
       ]
     },
     "S1-09": {
-      "status": "in progress",
+      "status": "done",
       "merged": true,
-      "notes": "Backend #23 and infra #35/#36 are merged and released in successful dev execution 2a38a300-3311-43f7-9552-d07875d6e696. Seeding created three accounts and three invitations; a repeat under the same scoped operator created/renewed none. Synthetic Google events for invited and supervisor fixtures were allowed, while uninvited was denied. Auth remains disabled; the native Cognito fixture phase remains pending.",
+      "notes": "Seed/admin invitation and all three confirmed native fixtures are deployed. Successful repeat enabled release 11d38ada-a392-471f-bf45-81592cedf9a5 reports accounts_created=0, invitations_created=0, invitations_renewed=0 and synthetic_users_created=0. Owner Google admin sign-in succeeds. Recovery implementation is merged; owner retains the sole real dev admin.",
       "prs": [
         "backend/23",
         "infra/35",
-        "infra/36"
+        "infra/36",
+        "infra/39"
       ]
     },
     "S1-06": {
-      "status": "in progress",
+      "status": "done",
       "merged": true,
-      "notes": "Backend #24 is merged and released in successful dev execution af3e6963-7cf5-4857-bfc8-c0a524ba1355. Transactional actor resolution/binding, current database roles/status and the lazy two-connection IAM pool pass race/PostgreSQL/privacy checks. Auth stays disabled; actual Gateway/native/Google token acceptance remains with S1-14 and activation.",
+      "notes": "Merged identity middleware is deployed. Real owner Google sign-in and repeat sign-in resolve the admin profile; native invited/uninvited Gateway acceptance passes. PostgreSQL tests cover transactional first binding, concurrent requests, identity uniqueness, deactivation and role authority. The exact persisted real-owner binding count remains a separate S1-18 evidence item.",
       "prs": [
         "backend/24"
       ]
@@ -268,45 +271,81 @@
       ]
     },
     "S1-08": {
-      "status": "in progress",
+      "status": "done",
       "merged": true,
-      "notes": "Backend #24 is merged and released. The explicit /me DTO, no-store JSON and stable 401/403 problems pass schema/privacy tests; deployed unauthenticated /me returns 401 problem+json. Actual authenticated Gateway acceptance remains pending with activation.",
+      "notes": "The deployed /me endpoint resolves the real Google owner and displays Default Organization and the database admin role. Repeat sign-in and reload resolve the profile again. Native tests verify invited 200 and uninvited 403, explicit DTO and no-store handling.",
       "prs": [
         "backend/24"
       ]
     },
     "S1-14": {
-      "status": "in progress",
-      "merged": false,
-      "notes": "Prepared Gateway JWT authorizer with issuer and SPA/dev-only test audiences; exactly one public health route is asserted for enabled environments. No-token release checks and scoped native invited/uninvited /me plus authenticated unknown-path checks are prepared. Default auth remains disabled; live activation acceptance is pending.",
+      "status": "done",
+      "merged": true,
+      "notes": "Dev activation 248fa024-49a0-4ebc-bc76-73a236ca9aaa succeeded after the official-registry repair. Live Gateway/native smoke passes invited /me 200, uninvited 403, authenticated unknown 404 and unauthenticated 401; health remains public. Exactly one public route, issuer/audiences and scoped reader are asserted. Backend #28 subsequently released in 11d38ada-a392-471f-bf45-81592cedf9a5; real Google owner profile acceptance also passes.",
       "prs": [
-        "infra/37"
+        "infra/37",
+        "infra/39",
+        "backend/27"
       ]
     },
     "S1-16": {
-      "status": "in progress",
-      "merged": false,
-      "notes": "Prepared exact Cognito origin in CloudFront and local CSP, strict header assertions, and no unsafe directives. Public runtime auth settings are validated, uploaded without caching and invalidated with index.html. Paired infra/frontend release and live activation remain pending.",
+      "status": "done",
+      "merged": true,
+      "notes": "Released in successful enabled-dev activation 248fa024-49a0-4ebc-bc76-73a236ca9aaa. Exact Cognito CSP and no-store public issuer/client/callback/logout settings are verified, with no credential fields. Release header/browser checks and native dev browser flows pass. Prod remains disabled.",
       "prs": [
         "infra/37",
+        "infra/39",
         "frontend/21"
       ]
     },
     "S1-10": {
-      "status": "in progress",
-      "merged": false,
-      "notes": "Prepared code/PKCE browser flow with state/nonce validation, callback URL cleanup, memory-only tokens, single-flight refresh and revocation plus hosted logout. 401/403 handling clears private cache and routes safely. Unit and intercepted browser tests cover replay, reload, refresh races, logout and denied profiles. Real Google sign-in/sign-out remain pending after activation.",
+      "status": "done",
+      "merged": true,
+      "notes": "Frontend #21 is merged and deployed. Actual Google admin sign-in, hosted logout to the signed-out landing, repeat sign-in and page-reload reauthentication were observed on dev after backend #28. Memory-only tokens, state/nonce/PKCE, callback cleanup, refresh/revocation and error handling have automated coverage. Native runner refresh-token revocation is verified separately; no real owner credential was recorded.",
       "prs": [
         "frontend/21"
       ]
     },
     "S1-11": {
       "status": "in progress",
-      "merged": false,
-      "notes": "Prepared themed signed-out landing, account-name menu, current profile and access-denied views. Serious accessibility checks and browser flows pass. Navigation for future role-specific feature pages and actual dev sign-in acceptance remain pending.",
+      "merged": true,
+      "notes": "Deployed landing, admin profile, account menu and signed-out view were verified with the real owner Google account. Native denial and accessibility cases pass. Navigation for future role-specific feature pages remains pending with those features.",
       "prs": [
         "frontend/21"
       ]
+    },
+    "S1-12": {
+      "status": "in review",
+      "merged": false,
+      "prs": [
+        "backend/25"
+      ],
+      "notes": "Backend #25 provides PostgreSQL tests that reuse identical trusted claims after role removal and deactivation and reject token-group elevation. The branch is refreshed with merged backend #28. Real Gateway/native profile acceptance and actual Google admin sign-in are verified. Tests cover database role changes locally; no live owner demotion/deactivation was performed. Review/merge remains pending."
+    },
+    "S1-20": {
+      "status": "done",
+      "merged": true,
+      "notes": "Backend #26 and infra #38 are merged. PostgreSQL recovery tests preserve the first bound admin/history, are idempotent and require explicit prod opt-in. The runbook gives exact additional-admin invocation and safe failure handling. Owner explicitly elected to retain the sole dev admin; no second live identity or live recovery drill is claimed.",
+      "prs": [
+        "backend/26",
+        "infra/38"
+      ]
+    },
+    "S1-13": {
+      "status": "in progress",
+      "merged": false,
+      "prs": [
+        "frontend/22"
+      ],
+      "notes": "Frontend #22 prepares release native-browser automation. Both native cases passed against deployed dev: real Gateway invited 200 and uninvited 403 relayed unchanged to the UI, revocation, safe storage and no token-group elevation. Actual owner Google first sign-in was reported successful; repeat sign-in, hosted logout and reload were observed and recorded locally after backend #28. Release automation awaits merge; real uninvited/deactivated Google demo remains outstanding."
+    },
+    "S1-18": {
+      "status": "in progress",
+      "merged": true,
+      "prs": [
+        "backend/28"
+      ],
+      "notes": "Backend #28 is merged and released on live version 4. Owner reports successful first Google sign-in; browser verification observes admin profile, logout, repeat sign-in and reload. Read-only Cognito verification finds exactly one enabled federated Google identity with verified email after repeat sign-ins. The previous 99 warm version-3 samples have REPORT p99/max 54.37 ms, not cold p99. Exact real-owner database binding evidence, real Google uninvited/deactivated acceptance and representative cold measurements remain outstanding."
     }
   }
 }
