@@ -15,11 +15,11 @@ An invited Google account signs in and sees its name and role-based navigation; 
 - [ ] The demo above is performed on dev by someone other than the author, or recorded
 - [ ] Docs updated (this folder, OpenAPI, CLAUDE.md if contracts changed)
 
-## Execution status (2026-10-12)
+## Execution status (2026-10-13)
 
-**15 done** · **4 in progress** · **1 in review** · **0 not started**
+**19 done** · **1 in progress** · **0 in review** · **0 not started**
 
-Backend #28 is merged and deployed in successful release 11d38ada-a392-471f-bf45-81592cedf9a5. The owner successfully tested real Google sign-in; browser verification confirms the admin profile, hosted logout, repeat sign-in and reload reauthentication. Repeat enabled seed creates/renews nothing. Native Gateway/browser cases pass. Backend #25 role-authority review and frontend #22 release browser automation remain open. Representative cold p99, exact real-owner binding evidence and real Google uninvited/deactivated demo remain outstanding. The owner retains the sole dev admin; prod auth/deploy remain disabled.
+Enabled dev release 7969a830-cd94-41da-bf97-6693b389e17d succeeded with backend #29 and merged frontend #22. Both native browser cases pass in pipeline smoke; repeated seed creates/renews nothing. Real Google owner sign-in/repeat/logout/reload and unchanged persisted binding counts are verified. A separate real uninvited Google account is refused and remains absent from Cognito. S1-13 is complete. The owner reports the deactivated-account slice demo passed on dev with a second real Google account (2026-10-13). Cold-start evidence from the existing dev logs is recorded in ADR-0007 and accepted by the owner; it is not an on-demand p99. Future role-specific navigation acceptance (S1-11) remains open. The owner retains the sole dev admin; prod auth/deploy remain disabled.
 
 **Status legend:** done = merged implementation; in progress = partial implementation or remaining acceptance; in review = open PR; not started = implementation has not begun. Completion notes distinguish dev verification from deferred prod/manual acceptance. Acceptance checkboxes are not automatically checked from merge status.
 
@@ -31,8 +31,8 @@ Backend #28 is merged and deployed in successful release 11d38ada-a392-471f-bf45
 | [S1-04](#s1-04) | Story | Migration: organizations, users, invitations; seed Default Organization | 1.5 | S0-10 | done |
 | [S1-17](#s1-17) | Task | Read-only database role for the pre-sign-up trigger | 1 | S0-08 | done |
 | [S1-01](#s1-01) | Story | Cognito user pool, Google IdP, app client, hosted UI, secrets and token settings | 2 | S0-15, S1-02 | done |
-| [S1-18](#s1-18) | Spike | Spike proof: federated binding and trigger latency measured on dev | 0.5 | S1-01, S1-03 | in progress |
-| [S1-03](#s1-03) | Story | PreSignUp Lambda enforcing the invitation allowlist | 1.5 | S1-01, S1-04, S1-17 | in progress |
+| [S1-18](#s1-18) | Spike | Spike proof: federated binding and trigger latency measured on dev | 0.5 | S1-01, S1-03 | done |
+| [S1-03](#s1-03) | Story | PreSignUp Lambda enforcing the invitation allowlist | 1.5 | S1-01, S1-04, S1-17 | done |
 | [S1-14](#s1-14) | Task | API Gateway JWT authorizer with a public /healthz route | 1 | S1-01 | done |
 | [S1-15](#s1-15) | Task | Authorizer claims through the Lambda adapter | 0.5 | S0-03 | done |
 | [S1-05](#s1-05) | Task | OpenAPI: /me and the shared Problem responses | 1 | S0-19 | done |
@@ -45,8 +45,8 @@ Backend #28 is merged and deployed in successful release 11d38ada-a392-471f-bf45
 | [S1-16](#s1-16) | Task | CSP connect-src for the Cognito hosted UI domain | 0.5 | S1-01 | done |
 | [S1-10](#s1-10) | Story | Frontend auth: Cognito hosted UI (code + PKCE), AuthProvider, route guards | 2 | S1-01, S1-08, S1-16, S0-19 | done |
 | [S1-11](#s1-11) | Story | App shell: header, role-aware nav, landing and access-denied pages | 1.5 | S1-10 | in progress |
-| [S1-12](#s1-12) | Task | Role authority and token staleness: tests and runbook note | 1 | S1-06 | in review |
-| [S1-13](#s1-13) | Task | E2E: invited sign-in and denied sign-in | 2 | S1-11, S1-09, S1-03 | in progress |
+| [S1-12](#s1-12) | Task | Role authority and token staleness: tests and runbook note | 1 | S1-06 | done |
+| [S1-13](#s1-13) | Task | E2E: invited sign-in and denied sign-in | 2 | S1-11, S1-09, S1-03 | done |
 
 ---
 
@@ -64,7 +64,7 @@ Backend #28 is merged and deployed in successful release 11d38ada-a392-471f-bf45
 | Stories | US-01 |
 | Is blocked by | S0-02 |
 | Blocks | S1-01, S5-05 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -106,7 +106,7 @@ Decision-first half of the spike, before any auth code. OQ-01 is already decided
 | Stories | US-46 |
 | Is blocked by | S0-10 |
 | Blocks | S1-03, S1-06, S1-09, S2-01, S5-01, S6-01 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -148,7 +148,7 @@ goose migration creating the tables per CLAUDE.md §9 with citext email uniquene
 | Stories | US-39 |
 | Is blocked by | S0-08 |
 | Blocks | S1-03 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -189,7 +189,7 @@ Extend the S0-08 role bootstrap with a third IAM role, presignup_ro, that may on
 | Stories | US-01 |
 | Is blocked by | S0-15, S1-02 |
 | Blocks | S1-18, S1-03, S1-14, S1-09, S1-16, S1-10, S5-04 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -233,13 +233,13 @@ CDK auth construct in the data stack (ADR-0009, the pool is stateful): user pool
 | Stories | US-01 |
 | Is blocked by | S1-01, S1-03 |
 | Blocks | - |
-| Status (2026-10-12) | in progress |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
-Backend #28 is merged and released on live version 4. Owner reports successful first Google sign-in; browser verification observes admin profile, logout, repeat sign-in and reload. Read-only Cognito verification finds exactly one enabled federated Google identity with verified email after repeat sign-ins. The previous 99 warm version-3 samples have REPORT p99/max 54.37 ms, not cold p99. Exact real-owner database binding evidence, real Google uninvited/deactivated acceptance and representative cold measurements remain outstanding.
+Backend #29 is merged and released successfully in 7969a830-cd94-41da-bf97-6693b389e17d. Read-only owner verification before and after another real Google sign-in returns one Google identity and unchanged counts of one user, subject match, active admin and accepted invitation. Real uninvited Google sign-in is refused with SIGN_UP_NOT_ALLOWED (handler duration 69 ms, version 5) and creates no Cognito identity. Backend #33 records the existing dev CloudWatch cold-start evidence in ADR-0007, accepted by the owner in place of a probe run: it states that no p99 is claimed, that the logs cannot show on-demand cold starts, and that headroom under the 5 s ceiling is about 0.5 s. No AWS resource was changed. ADR-0008 records binding proof; production and the sole-admin decision are unchanged.
 
-Merged PRs: [backend #28](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/28).
+Merged PRs: [backend #29](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/29), [backend #33](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/33).
 
 **Description**
 
@@ -273,11 +273,11 @@ Second half of the spike, once the pool exists. Prove on dev what ADR-0007 and A
 | Stories | US-02 |
 | Is blocked by | S1-01, S1-04, S1-17 |
 | Blocks | S1-18, S1-13, S5-11 |
-| Status (2026-10-12) | in progress |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
-Backend #28 is merged and deployed on live version 4. Real owner Google admission now passes; verified-email and database invitation authority remain unchanged. Policy/privacy/PostgreSQL tests and previous warm admission samples pass. Representative cold-start p99 and additional real Google denial acceptance remain outstanding in S1-18.
+The merged trigger admits the real invited Google owner and refuses a separate real uninvited Google account with SIGN_UP_NOT_ALLOWED on version 5; Cognito identity count remains zero after refusal. PostgreSQL and privacy tests cover expired/accepted invitations and deactivated users. The read-only role and warmed alias are deployed. The owner reports the returning-deactivated-account slice demo passed on dev with a second real Google account (2026-10-13); no account identifier or screenshot is committed. Latency: the owner accepted the existing dev CloudWatch evidence recorded in ADR-0007 (32 environment init durations, max 3.06 s; 7 first invocations, max 1.47 s; 113 warm invocations, p99 71.8 ms). That is not an on-demand cold-start p99: the sample is small, the logs cannot show true cold starts because reserved and provisioned concurrency are both 1, and headroom under the 5 s ceiling is about 0.5 s.
 
 Merged PRs: [backend #28](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/28).
 
@@ -317,7 +317,7 @@ VPC Lambda trigger connecting as presignup_ro with RDS IAM auth; rejects emails 
 | Stories | US-01, US-42 |
 | Is blocked by | S1-01 |
 | Blocks | S1-06 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -360,7 +360,7 @@ S0 built one route, ANY /api/v1/{proxy+} (lib/app/api.ts), and API Gateway attac
 | Stories | US-01 |
 | Is blocked by | S0-03 |
 | Blocks | S1-06 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -401,7 +401,7 @@ internal/apigw.toHTTPRequest copies path, method, query, body, headers and cooki
 | Stories | US-01 |
 | Is blocked by | S0-19 |
 | Blocks | S1-19, S1-06 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -443,7 +443,7 @@ Spec GET /me (id, name, email, roles, organization) and the shared 401, 403 and 
 | Stories | US-01 |
 | Is blocked by | S1-05 |
 | Blocks | - |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -484,11 +484,11 @@ The drift gate compares the pinned spec to the backend spec byte for byte (scrip
 | Stories | US-01, US-02 |
 | Is blocked by | S1-04, S1-05, S1-14, S1-15, S0-09 |
 | Blocks | S1-07, S1-08, S1-12 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
-Merged identity middleware is deployed. Real owner Google sign-in and repeat sign-in resolve the admin profile; native invited/uninvited Gateway acceptance passes. PostgreSQL tests cover transactional first binding, concurrent requests, identity uniqueness, deactivation and role authority. The exact persisted real-owner binding count remains a separate S1-18 evidence item.
+Merged identity middleware is deployed. Real Google owner sign-in and repeat sign-in resolve the admin profile; read-only operator checks before/after the repeat confirm one Google identity, one matching active admin user/subject and one accepted invitation. Native Gateway invited/uninvited acceptance and PostgreSQL transactional/concurrency/role/deactivation regressions pass.
 
 Merged PRs: [backend #24](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/24).
 
@@ -526,7 +526,7 @@ Wire the pgx pool into cmd/api, which has no database today, then resolve the ac
 | Stories | US-44 |
 | Is blocked by | S1-06 |
 | Blocks | S1-08, S2-05, S2-06, S2-07, S3-03, S5-03, S8-02, S10-03 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -567,7 +567,7 @@ Central policy package: Actor type, role predicates, relationship checks interfa
 | Stories | US-01 |
 | Is blocked by | S1-06, S1-07 |
 | Blocks | S1-10 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -608,7 +608,7 @@ Returns the current user's profile, roles and organization via a dedicated DTO.
 | Stories | US-46 |
 | Is blocked by | S1-04, S1-01 |
 | Blocks | S1-20, S1-13 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -651,7 +651,7 @@ There is no direct database access in any environment (no bastion, by budget), s
 | Stories | US-46 |
 | Is blocked by | S1-09 |
 | Blocks | - |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -691,7 +691,7 @@ Sign-in is Google only and SEC-07 forbids a backdoor, so if the single admin's G
 | Stories | US-01 |
 | Is blocked by | S1-01 |
 | Blocks | S1-10 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -732,7 +732,7 @@ lib/app/web.ts sets connect-src 'self' and says in a comment that S1 adds the Co
 | Stories | US-01 |
 | Is blocked by | S1-01, S1-08, S1-16, S0-19 |
 | Blocks | S1-11 |
-| Status (2026-10-12) | done |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
@@ -775,7 +775,7 @@ Redirect flow, tokens in memory with refresh, AuthProvider and useAuth, protecte
 | Stories | US-01, US-02 |
 | Is blocked by | S1-10 |
 | Blocks | S1-13, S5-13, S6-09, S6-11, S8-04, S10-05 |
-| Status (2026-10-12) | in progress |
+| Status (2026-10-13) | in progress |
 
 **Completion / progress**
 
@@ -816,13 +816,13 @@ Header with title/kicker per prototype, user name menu, nav items by role, signe
 | Stories | US-44 |
 | Is blocked by | S1-06 |
 | Blocks | - |
-| Status (2026-10-12) | in review |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
-Backend #25 provides PostgreSQL tests that reuse identical trusted claims after role removal and deactivation and reject token-group elevation. The branch is refreshed with merged backend #28. Real Gateway/native profile acceptance and actual Google admin sign-in are verified. Tests cover database role changes locally; no live owner demotion/deactivation was performed. Review/merge remains pending.
+Backend #25 is merged at 8e1e29210edbe033646560d5f3523cb2ad669513 and released successfully in 79a1a47a-bc74-4a3a-be9b-923511bfc5f5. PostgreSQL regressions prove unchanged trusted claims cannot retain removed database roles or bypass deactivation; the runbook documents next-request enforcement and S5-05 Cognito follow-up. Real native/Google profile acceptance is verified separately. No live owner demotion or deactivation was performed.
 
-Open PRs: [backend #25](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/25).
+Merged PRs: [backend #25](https://github.com/malcolmjefferson/therapy_service_hours_backend/pull/25).
 
 **Description**
 
@@ -837,7 +837,7 @@ Verify that the users row decides admin and supervisor, and that cognito:groups 
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
 
@@ -857,13 +857,13 @@ Verify that the users row decides admin and supervisor, and that cognito:groups 
 | Stories | US-01, US-02 |
 | Is blocked by | S1-11, S1-09, S1-03 |
 | Blocks | S2-17 |
-| Status (2026-10-12) | in progress |
+| Status (2026-10-13) | done |
 
 **Completion / progress**
 
-Frontend #22 prepares release native-browser automation. Both native cases passed against deployed dev: real Gateway invited 200 and uninvited 403 relayed unchanged to the UI, revocation, safe storage and no token-group elevation. Actual owner Google first sign-in was reported successful; repeat sign-in, hosted logout and reload were observed and recorded locally after backend #28. Release automation awaits merge; real uninvited/deactivated Google demo remains outstanding.
+Frontend #22 is merged and released. Both native invited/denied browser cases explicitly passed in pipeline smoke in d41c4fb4-4e96-42d8-98bc-67da2a878869 and 7969a830-cd94-41da-bf97-6693b389e17d. The separate real Google demo records owner sign-in/repeat/logout/reload and uninvited denial; the uninvited account has zero Cognito identities before and after. No real credentials or identities were committed; automated tests do not drive Google. The owner reports the deactivated-account slice demo passed separately on dev with a second real Google account (2026-10-13).
 
-Open PRs: [frontend #22](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/22).
+Merged PRs: [frontend #22](https://github.com/malcolmjefferson/therapy_service_hours_frontend/pull/22).
 
 **Description**
 
@@ -877,6 +877,6 @@ Playwright against dev using the token strategy ADR-0011 settles: an invited use
 
 **Definition of Done**
 
-- [ ] Implementation merged
+- [x] Implementation merged
 - [ ] Validation: automated tests (and manual steps where noted) pass
 - [ ] Documentation: reviewer verification steps in the PR; OpenAPI/CLAUDE.md updated if a contract changed
