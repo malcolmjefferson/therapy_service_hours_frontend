@@ -31,6 +31,11 @@ body {
     );
 }
 
+/* Set by Dialog while it is open, so the page behind it does not scroll. */
+body[data-scroll-locked] {
+  overflow: hidden;
+}
+
 h1,
 h2,
 h3 {

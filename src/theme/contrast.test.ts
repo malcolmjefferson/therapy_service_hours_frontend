@@ -1,25 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { contrastRatio, relativeLuminance } from './contrast';
-import css from './tokens.css?raw';
-
-/** Reads the token values straight from tokens.css, so the test follows the real palette. */
-function tokens(): Record<string, string> {
-  const entries: [string, string][] = [...css.matchAll(/--(color-[a-z-]+):\s*(#[0-9a-f]{3,6});/gi)].map((m) => [
-    m[1] ?? '',
-    expand(m[2] ?? ''),
-  ]);
-  return Object.fromEntries(entries);
-}
-
-/** Expands #rgb to #rrggbb. */
-function expand(hex: string): string {
-  const h = hex.toLowerCase();
-  if (h.length !== 4) {
-    return h;
-  }
-  const [r, g, b] = [h.charAt(1), h.charAt(2), h.charAt(3)];
-  return `#${r}${r}${g}${g}${b}${b}`;
-}
+import { colorTokens } from './tokenValues';
 
 describe('contrast math', () => {
   test('black on white is 21:1 and a color on itself is 1:1', () => {
@@ -33,7 +14,7 @@ describe('contrast math', () => {
 });
 
 describe('text token pairs meet WCAG AA 4.5:1 (FE-44)', () => {
-  const t = tokens();
+  const t = colorTokens();
   const pairs: [string, string][] = [
     ['color-ink', 'color-paper'],
     ['color-ink', 'color-raised'],

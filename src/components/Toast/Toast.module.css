@@ -1,0 +1,75 @@
+.viewport {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(24rem, calc(100vw - 2 * var(--space-4)));
+  pointer-events: none;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-ink-soft);
+  border-left-width: 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-raised);
+  color: var(--color-ink);
+  pointer-events: auto;
+}
+
+/* The left bar reinforces the tone; the message text always says what happened. */
+.info {
+  border-left-color: var(--color-gold);
+}
+
+.success {
+  border-left-color: var(--color-lime-deep);
+}
+
+.error {
+  border-left-color: var(--color-red-deep);
+}
+
+.message {
+  flex: 1;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.dismiss {
+  min-width: 44px;
+  min-height: 44px;
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-3)) calc(-1 * var(--space-2)) 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .toast {
+    animation: toast-in var(--duration-fast) ease-out;
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(var(--space-2));
+    }
+  }
+}
