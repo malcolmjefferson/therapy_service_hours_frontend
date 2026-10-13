@@ -6,3 +6,4 @@ export { FormField, type FieldControlProps, type FormFieldProps } from './FormFi
 export { Input, type InputProps } from './Input';
 export { Select, type SelectGroup, type SelectOption, type SelectProps } from './Select';
 export { ToastProvider, useToast, type ToastApi, type ToastOptions, type ToastTone } from './Toast';
+export { Textarea, type TextareaProps } from './Textarea';
