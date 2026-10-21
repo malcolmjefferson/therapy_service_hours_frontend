@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Navigate } from 'react-router';
+import { Link, Navigate } from 'react-router';
 import { useAuth } from '../../../lib/auth/AuthProvider';
 import { useProfileQuery } from '../api/useProfileQuery';
 import { AccessDenied } from './AccessDenied';
@@ -37,11 +37,15 @@ function CurrentProfile() {
       <h2 id="profile-title">Welcome, {profile.data.name || profile.data.email}</h2>
       <p>{profile.data.organization.name}</p>
       <p>{profile.data.roles.length ? `Roles: ${profile.data.roles.join(', ')}` : 'Clinical hours account'}</p>
+      <p>
+        <Link to="/app/entries">Your entries</Link>
+      </p>
     </section>
   );
 }
 
-export function AuthenticatedHome() {
+/** Shows `children` only to a signed-in user; everyone else is sent to sign in, the start page or the access-denied page. */
+export function RequireSignIn({ children }: { children: ReactNode }) {
   const { session, state } = useAuth();
   useEffect(() => {
     if (session.config.enabled && state === 'signed-out') void session.signIn(true);
@@ -50,5 +54,13 @@ export function AuthenticatedHome() {
   if (state === 'denied') return <Navigate to="/access-denied" replace />;
   if (state === 'error' || state === 'expired') return <Navigate to="/" replace />;
   if (state !== 'signed-in') return <p role="status">Returning to sign-in…</p>;
-  return <CurrentProfile />;
+  return children;
+}
+
+export function AuthenticatedHome() {
+  return (
+    <RequireSignIn>
+      <CurrentProfile />
+    </RequireSignIn>
+  );
 }

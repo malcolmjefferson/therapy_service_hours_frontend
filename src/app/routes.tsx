@@ -19,6 +19,7 @@ export const routes: RouteObject[] = [
       },
       { path: 'auth/callback', lazy: async () => ({ Component: (await import('../features/auth')).AuthCallback }) },
       { path: 'access-denied', lazy: async () => ({ Component: (await import('../features/auth')).AccessDenied }) },
+      { path: 'app/entries', lazy: async () => ({ Component: (await import('./EntriesRoute')).EntriesRoute }) },
       { path: 'app', lazy: async () => ({ Component: (await import('../features/auth')).AuthenticatedHome }) },
       {
         path: '*',
