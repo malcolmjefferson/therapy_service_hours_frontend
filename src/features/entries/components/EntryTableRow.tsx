@@ -1,3 +1,4 @@
+import { Button } from '../../../components';
 import type { components } from '../../../lib/api';
 import { formatSessionDate, formatTimeRange } from '../model/format';
 import { formatHours } from '../model/time';
@@ -9,12 +10,27 @@ type Entry = components['schemas']['Entry'];
 /** The fields the table row reads (FE-19, FE-21). */
 export type EntryRow = Pick<
   Entry,
-  'id' | 'session_date' | 'start_time' | 'end_time' | 'duration_minutes' | 'category' | 'clients' | 'on_site' | 'notes'
+  | 'id'
+  | 'session_date'
+  | 'start_time'
+  | 'end_time'
+  | 'duration_minutes'
+  | 'category'
+  | 'clients'
+  | 'on_site'
+  | 'notes'
+  | 'status'
 >;
 
+export interface EntryRowActions {
+  onEdit: (entry: EntryRow) => void;
+  onDelete: (entry: EntryRow) => void;
+}
+
 /** One entry. Client names and notes render as plain text (FE-60). */
-export function EntryTableRow({ entry }: { entry: EntryRow }) {
+export function EntryTableRow({ entry, actions }: { entry: EntryRow; actions?: EntryRowActions | undefined }) {
   const times = formatTimeRange(entry.start_time, entry.end_time);
+  const label = `${formatSessionDate(entry.session_date)}, ${entry.category.name}`;
   return (
     <tr>
       <td>
@@ -42,6 +58,36 @@ export function EntryTableRow({ entry }: { entry: EntryRow }) {
       <td className={styles.number}>{formatHours(entry.duration_minutes)}</td>
       <td>{entry.on_site ? 'Yes' : 'No'}</td>
       <td className={styles.notes}>{entry.notes}</td>
+      {actions ? (
+        <td>
+          {entry.status === 'approved' ? (
+            // Approved entries are locked: only pending and rejected ones can change (FR-LOG-05).
+            <span className={styles.muted}>Locked</span>
+          ) : (
+            <div className={styles.rowActions}>
+              <Button
+                variant="ghost"
+                data-entry-edit={entry.id}
+                aria-label={`Edit entry: ${label}`}
+                onClick={() => {
+                  actions.onEdit(entry);
+                }}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="ghost"
+                aria-label={`Delete entry: ${label}`}
+                onClick={() => {
+                  actions.onDelete(entry);
+                }}
+              >
+                Delete
+              </Button>
+            </div>
+          )}
+        </td>
+      ) : null}
     </tr>
   );
 }

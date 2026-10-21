@@ -5,4 +5,5 @@ export const entryKeys = {
   all: ['entries'] as const,
   lists: () => [...entryKeys.all, 'list'] as const,
   list: (view: EntriesView) => [...entryKeys.lists(), view] as const,
+  categories: () => ['categories'] as const,
 };

@@ -1,11 +1,25 @@
 import { describe, expect, test } from 'vitest';
-import { DEFAULT_WIDTHS, KEY_STEP, MIN_WIDTH, TOTAL_WIDTH, resizeEdge, toPercent } from './columnWidths';
+import {
+  ACTIONS_WIDTHS,
+  DEFAULT_WIDTHS,
+  KEY_STEP,
+  MIN_WIDTH,
+  TOTAL_WIDTH,
+  resizeEdge,
+  toPercent,
+} from './columnWidths';
 
 const sum = (widths: readonly number[]) => widths.reduce((a, b) => a + b, 0);
 
 describe('column widths', () => {
   test('the defaults fill exactly 100%', () => {
     expect(sum(DEFAULT_WIDTHS)).toBe(TOTAL_WIDTH);
+  });
+
+  test('the defaults with the Actions column also fill exactly 100%, with no column under the minimum', () => {
+    expect(ACTIONS_WIDTHS).toHaveLength(DEFAULT_WIDTHS.length + 1);
+    expect(sum(ACTIONS_WIDTHS)).toBe(TOTAL_WIDTH);
+    expect(Math.min(...ACTIONS_WIDTHS)).toBeGreaterThanOrEqual(MIN_WIDTH);
   });
 
   test('dragging an edge right widens the left column by what the right one loses', () => {

@@ -1,9 +1,9 @@
 import { useId, useState, type CSSProperties } from 'react';
-import { DEFAULT_WIDTHS, resizeEdge, toPercent, type ColumnWidths } from '../model/columnWidths';
+import { ACTIONS_WIDTHS, DEFAULT_WIDTHS, resizeEdge, toPercent, type ColumnWidths } from '../model/columnWidths';
 import type { EntriesView, EntrySortField } from '../model/viewState';
 import { ariaSortFor, sortLabels } from '../model/viewState';
 import { ColumnResizer } from './ColumnResizer';
-import { EntryTableRow, type EntryRow } from './EntryTableRow';
+import { EntryTableRow, type EntryRow, type EntryRowActions } from './EntryTableRow';
 import { SortButton } from './SortButton';
 import styles from './EntriesTable.module.css';
 
@@ -11,6 +11,8 @@ export interface EntriesTableProps {
   entries: readonly EntryRow[];
   view: EntriesView;
   onSort: (field: EntrySortField) => void;
+  /** Adds an Actions column with Edit and Delete on each pending or rejected entry. */
+  actions?: EntryRowActions | undefined;
 }
 
 /** The columns left to right, matching `DEFAULT_WIDTHS`. A column with a `sort` field is a sort button. */
@@ -24,12 +26,16 @@ const columns: readonly { key: string; label: string; sort?: EntrySortField; cla
   { key: 'notes', label: 'Notes' },
 ];
 
+/** With row actions the table has one more column, after Notes. */
+const actionsColumn: (typeof columns)[number] = { key: 'actions', label: 'Actions' };
+
 /**
  * The sortable entries table with resizable columns. It fetches nothing (FE-10). Column widths are
  * percentages that always add up to 100%, kept in component state: they reset on reload.
  */
-export function EntriesTable({ entries, view, onSort }: EntriesTableProps) {
-  const [widths, setWidths] = useState<ColumnWidths>(DEFAULT_WIDTHS);
+export function EntriesTable({ entries, view, onSort, actions }: EntriesTableProps) {
+  const [widths, setWidths] = useState<ColumnWidths>(actions ? ACTIONS_WIDTHS : DEFAULT_WIDTHS);
+  const shown = actions ? [...columns, actionsColumn] : columns;
   const idPrefix = useId();
   const resize = (base: ColumnWidths, index: number, delta: number) => {
     setWidths(resizeEdge(base, index, delta));
@@ -42,7 +48,7 @@ export function EntriesTable({ entries, view, onSort }: EntriesTableProps) {
           Your entries, sorted by {sortLabels[view.sort]}, {view.dir === 'asc' ? 'ascending' : 'descending'}
         </caption>
         <colgroup>
-          {columns.map((column, i) => (
+          {shown.map((column, i) => (
             <col
               key={column.key}
               className={styles.col}
@@ -52,9 +58,9 @@ export function EntriesTable({ entries, view, onSort }: EntriesTableProps) {
         </colgroup>
         <thead>
           <tr>
-            {columns.map((column, i) => {
+            {shown.map((column, i) => {
               const labelId = `${idPrefix}-${column.key}`;
-              const isLast = i === columns.length - 1;
+              const isLast = i === shown.length - 1;
               return (
                 <th
                   key={column.key}
@@ -83,7 +89,7 @@ export function EntriesTable({ entries, view, onSort }: EntriesTableProps) {
         </thead>
         <tbody>
           {entries.map((entry) => (
-            <EntryTableRow key={entry.id} entry={entry} />
+            <EntryTableRow key={entry.id} entry={entry} actions={actions} />
           ))}
         </tbody>
       </table>

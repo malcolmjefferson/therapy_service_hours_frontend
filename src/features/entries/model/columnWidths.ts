@@ -7,6 +7,9 @@ export type ColumnWidths = readonly number[];
 /** Date, Time, Category, Client, Hours, On-site, Notes. */
 export const DEFAULT_WIDTHS: ColumnWidths = [120, 120, 160, 140, 100, 100, 260];
 
+/** The same columns plus Actions, when each row has Edit and Delete. */
+export const ACTIONS_WIDTHS: ColumnWidths = [110, 110, 130, 120, 100, 100, 190, 140];
+
 /** Total of all columns: 100%. */
 export const TOTAL_WIDTH = 1000;
 

@@ -6,6 +6,8 @@ export interface EntryDraft {
   categoryId: string;
   startTime: string;
   endTime: string;
+  /** Ids of the chosen saved clients, in the order they were chosen. */
+  clientIds: string[];
   onSite: boolean;
   notes: string;
 }
@@ -18,6 +20,7 @@ export const emptyDraft: EntryDraft = {
   categoryId: '',
   startTime: '',
   endTime: '',
+  clientIds: [],
   onSite: false,
   notes: '',
 };

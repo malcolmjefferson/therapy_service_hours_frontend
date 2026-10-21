@@ -18,7 +18,7 @@ function setup(onSubmit: SubmitEntry = saved) {
   const user = userEvent.setup();
   const view = render(
     <ToastProvider>
-      <EntryForm categories={categories} onSubmit={submit} clients={<p>Client picker slot</p>} />
+      <EntryForm categories={categories} onSubmit={submit} clients={() => <p>Client picker slot</p>} />
     </ToastProvider>,
   );
   return { user, submit, ...view };
@@ -112,6 +112,7 @@ describe('adding an entry', () => {
       categoryId: 'cat-individual',
       startTime: '09:00',
       endTime: '10:15',
+      clientIds: [],
       onSite: true,
       notes: 'Pseudonym A, intake',
     });
