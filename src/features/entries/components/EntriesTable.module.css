@@ -6,8 +6,29 @@
   background: var(--color-raised);
 }
 
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
 .title {
   margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
 }
 
 .count {
@@ -16,10 +37,66 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Narrow screens scroll the table sideways instead of squeezing the percentage columns. */
+.scroll {
+  overflow-x: auto;
+}
+
 .table {
   width: 100%;
+  min-width: 72rem;
+  table-layout: fixed;
   border-collapse: collapse;
   color: var(--color-ink);
+}
+
+/* The width of each column is a percentage set as --col-width by the table (FE-46). */
+.col {
+  width: var(--col-width);
+}
+
+/* Heading text lines up with the cells below: the sort button brings its own padding, so the cell keeps little. */
+.table th.head {
+  position: relative;
+  padding-inline: var(--space-1);
+}
+
+.headLabel {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+}
+
+/* The drag handle on a heading's right edge: a wide hit area with a thin line shown on hover and focus. */
+.resizer {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  z-index: 1;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.resizer::after {
+  content: '';
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  left: 3px;
+  width: 2px;
+  background: var(--color-ink-soft);
+  opacity: 0.4;
+}
+
+.resizer:hover::after,
+.resizer:focus-visible::after {
+  opacity: 1;
+}
+
+.resizer:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
 }
 
 .table th,
@@ -132,7 +209,7 @@
   border: 0;
 }
 
-.actions {
+.rowActions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);

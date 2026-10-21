@@ -3,10 +3,11 @@ import { Button, useToast } from '../../../components';
 import { useDeleteEntry, type DeleteEntryOutcome } from '../api/useDeleteEntry';
 import { useEntriesQuery } from '../api/useEntriesQuery';
 import { useEntriesView } from '../hooks/useEntriesView';
-import { PAGE_SIZE, pageCount } from '../model/viewState';
 import { deleteFailure } from '../model/saveFailure';
+import { PAGE_SIZE, hasFilters, isRangeBackwards, pageCount } from '../model/viewState';
 import { DeleteEntryDialog } from './DeleteEntryDialog';
 import { EntriesEmpty } from './EntriesEmpty';
+import { EntriesFilters } from './EntriesFilters';
 import { EntriesPagination } from './EntriesPagination';
 import { EntriesTable } from './EntriesTable';
 import type { EntryRow } from './EntryTableRow';
@@ -27,9 +28,14 @@ const DELETE_OUTCOME: Record<DeleteEntryOutcome, { message: string; tone: 'succe
 
 /** The caller's entries: loads one page in the chosen order and shows its loading, error, empty and table states. */
 export function EntriesPanel({ onEdit, onDeleted }: EntriesPanelProps) {
-  const { view, sortBy, goToPage } = useEntriesView();
-  const query = useEntriesQuery(view);
+  const { view, sortBy, goToPage, setFilters, clearFilters } = useEntriesView();
+  // A range that runs backwards is a 400, so it is flagged on the field and not sent.
+  const rangeBackwards = isRangeBackwards(view);
+  const query = useEntriesQuery(view, !rangeBackwards);
   const data = query.data;
+  const filtered = hasFilters(view);
+  // Clearing also drops client text that is typed but not applied yet, which the URL does not know about.
+  const [clearCount, setClearCount] = useState(0);
   const toast = useToast();
   const remove = useDeleteEntry();
   const [pendingDelete, setPendingDelete] = useState<EntryRow | null>(null);
@@ -64,11 +70,12 @@ export function EntriesPanel({ onEdit, onDeleted }: EntriesPanelProps) {
   }, [lastPage, view.page, goToPage]);
 
   let body;
-  if (data) {
+  if (rangeBackwards) {
+    body = <p role="status">Choose an end date that is not before the start date to see entries.</p>;
+  } else if (data) {
     body =
       data.page.total_items === 0 ? (
-        // Filters arrive with S2-14; until then an empty list always means "no entries yet".
-        <EntriesEmpty filtered={false} />
+        <EntriesEmpty filtered={filtered} />
       ) : (
         <>
           <EntriesTable
@@ -105,10 +112,35 @@ export function EntriesPanel({ onEdit, onDeleted }: EntriesPanelProps) {
 
   return (
     <section className={styles.panel} aria-labelledby="entries-title" aria-busy={query.isFetching}>
-      <h2 id="entries-title" ref={headingRef} tabIndex={-1} className={styles.title}>
-        Entries
-      </h2>
-      {data ? <p className={styles.count}>{data.page.total_items} in total</p> : null}
+      <div className={styles.header}>
+        <h2 id="entries-title" ref={headingRef} tabIndex={-1} className={styles.title}>
+          Entries
+        </h2>
+        <div className={styles.actions}>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              clearFilters();
+              setClearCount((count) => count + 1);
+            }}
+          >
+            Clear filters
+          </Button>
+          {/* Placeholders until the import and export stories (E4) wire them up. */}
+          <Button variant="ghost" disabled>
+            Export
+          </Button>
+          <Button variant="ghost" disabled>
+            Import
+          </Button>
+        </div>
+      </div>
+      <EntriesFilters key={clearCount} filters={view} onChange={setFilters} />
+      {data && !rangeBackwards ? (
+        <p className={styles.count} aria-live="polite">
+          {data.page.total_items} {filtered ? 'matching' : 'in total'}
+        </p>
+      ) : null}
       {body}
       <DeleteEntryDialog
         entry={pendingDelete}

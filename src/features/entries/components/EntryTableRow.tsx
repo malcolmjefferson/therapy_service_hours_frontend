@@ -64,7 +64,7 @@ export function EntryTableRow({ entry, actions }: { entry: EntryRow; actions?: E
             // Approved entries are locked: only pending and rejected ones can change (FR-LOG-05).
             <span className={styles.muted}>Locked</span>
           ) : (
-            <div className={styles.actions}>
+            <div className={styles.rowActions}>
               <Button
                 variant="ghost"
                 data-entry-edit={entry.id}

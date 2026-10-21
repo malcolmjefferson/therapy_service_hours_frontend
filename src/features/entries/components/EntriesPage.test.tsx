@@ -81,7 +81,8 @@ function overlapResponse() {
 }
 
 const form = (name: string) => screen.getByRole('form', { name });
-const field = (label: string) => screen.getByLabelText(label);
+// The filters above the table have fields of their own, so form fields are looked up inside the form.
+const field = (label: string) => within(screen.getByRole('form', { name: /^(Add|Edit) entry$/ })).getByLabelText(label);
 
 async function addForm() {
   await screen.findByRole('form', { name: 'Add entry' });
@@ -449,6 +450,26 @@ describe('deleting an entry', () => {
     await user.click(screen.getByRole('button', { name: deleteLabel }));
     await user.click(await screen.findByRole('button', { name: 'Delete entry' }));
     expect(await screen.findByRole('form', { name: 'Add entry' })).toBeVisible();
+  });
+});
+
+describe('the table with row actions', () => {
+  test('has an Actions column whose widths still add up to 100% when a column is resized', async () => {
+    const user = renderPage();
+    const table = await screen.findByRole('table');
+    expect(within(table).getByRole('columnheader', { name: 'Actions' })).toBeVisible();
+
+    const percentages = () =>
+      [...table.querySelectorAll<HTMLElement>('col')].map((col) =>
+        Number.parseFloat(col.style.getPropertyValue('--col-width')),
+      );
+    expect(percentages()).toHaveLength(8);
+    const [handle] = within(table).getAllByRole('slider');
+    if (!handle) throw new Error('no resize handle');
+    handle.focus();
+    await user.keyboard('{ArrowRight}');
+    const total = percentages().reduce((a, b) => a + b, 0);
+    expect(Math.round(total * 10) / 10).toBe(100);
   });
 });
 
