@@ -2,13 +2,15 @@ import { http, HttpResponse, type HttpHandler } from 'msw';
 import type { components } from '../lib/api';
 
 type Health = components['schemas']['HealthResponse'];
-type Problem = components['schemas']['ClientConflictProblem'];
+type Problem = components['schemas']['ClientConflictProblem'] | components['schemas']['EntryConflictProblem'];
 type Me = components['schemas']['MeResponse'];
 type Client = components['schemas']['Client'];
 type ClientList = components['schemas']['ClientListResponse'];
 type ClientRequest = components['schemas']['ClientRequest'];
 type Entry = components['schemas']['Entry'];
 type EntryList = components['schemas']['EntryListResponse'];
+type EntryRequest = components['schemas']['EntryRequest'];
+type CategoryList = components['schemas']['CategoryListResponse'];
 
 /** Absolute base URL the tests' API client uses (jsdom's origin plus the API base path). */
 export const API = 'http://localhost:3000/api/v1';
@@ -58,6 +60,58 @@ export const sampleEntries: readonly Entry[] = [
   },
 ];
 
+/** The category list the default `GET /categories` returns, grouped as the API does. */
+export const sampleCategories: CategoryList = {
+  groups: [
+    {
+      group: 'direct',
+      label: 'Direct Service',
+      categories: [
+        { id: '00000000-0000-4000-8000-0000000000c1', name: 'Individual Counseling' },
+        { id: '00000000-0000-4000-8000-0000000000c3', name: 'Group Counseling' },
+      ],
+    },
+    {
+      group: 'indirect',
+      label: 'Indirect Service',
+      categories: [{ id: '00000000-0000-4000-8000-0000000000c2', name: 'Staff Meetings' }],
+    },
+    {
+      group: 'supervision',
+      label: 'Supervision',
+      categories: [{ id: '00000000-0000-4000-8000-0000000000c4', name: 'Individual Supervision' }],
+    },
+  ],
+};
+
+/** An entry the API would return for `request`, in the category and clients the sample data knows. */
+export function entryFromRequest(request: EntryRequest, id = '00000000-0000-4000-8000-0000000000e9'): Entry {
+  const categories = sampleCategories.groups.flatMap((group) =>
+    group.categories.map((category) => ({ ...category, group: group.group })),
+  );
+  const category = categories.find((candidate) => candidate.id === request.category_id) ?? categories[0];
+  if (!category) throw new Error('sampleCategories is empty');
+  const [startH = 0, startM = 0] = request.start_time.split(':').map(Number);
+  const [endH = 0, endM = 0] = request.end_time.split(':').map(Number);
+  const minutes = endH * 60 + endM - (startH * 60 + startM);
+  return {
+    id,
+    session_date: request.session_date,
+    start_time: request.start_time,
+    end_time: request.end_time,
+    duration_minutes: minutes,
+    hours: Math.round((minutes / 60) * 100) / 100,
+    category,
+    clients: sampleClients.filter((client) => request.client_ids?.includes(client.id)),
+    on_site: request.on_site,
+    ...(request.notes ? { notes: request.notes } : {}),
+    status: 'pending',
+    needs_time: false,
+    created_at: '2026-01-12T20:00:00Z',
+    updated_at: '2026-01-12T20:00:00Z',
+  };
+}
+
 /**
  * Default handlers, one entry per spec path (an array when the path has several methods), typed from
  * the generated schema (FE-24, FE-66). Keyed by the spec path so the coverage test can compare them
@@ -79,13 +133,25 @@ export const defaultHandlers: Record<string, HttpHandler | readonly HttpHandler[
   '/healthz': http.get<never, never, Health>(`${API}/healthz`, () =>
     HttpResponse.json({ status: 'ok', version: 'test-build-1' }),
   ),
-  // GET only; the create handler comes with the entry form wiring (S2-11 follow-up).
-  '/entries': http.get<never, never, EntryList>(`${API}/entries`, () =>
-    HttpResponse.json({
-      items: [...sampleEntries],
-      page: { page: 1, page_size: 50, total_items: sampleEntries.length },
-    }),
-  ),
+  '/categories': http.get<never, never, CategoryList>(`${API}/categories`, () => HttpResponse.json(sampleCategories)),
+  '/entries': [
+    http.get<never, never, EntryList>(`${API}/entries`, () =>
+      HttpResponse.json({
+        items: [...sampleEntries],
+        page: { page: 1, page_size: 50, total_items: sampleEntries.length },
+      }),
+    ),
+    http.post<never, EntryRequest, Entry>(`${API}/entries`, async ({ request }) =>
+      HttpResponse.json(entryFromRequest(await request.json()), { status: 201 }),
+    ),
+  ],
+  // `GET /entries/{entryId}` has no frontend caller: the table lists whole entries.
+  '/entries/{entryId}': [
+    http.put<{ entryId: string }, EntryRequest, Entry>(`${API}/entries/:entryId`, async ({ params, request }) =>
+      HttpResponse.json(entryFromRequest(await request.json(), params.entryId)),
+    ),
+    http.delete(`${API}/entries/:entryId`, () => new HttpResponse(null, { status: 204 })),
+  ],
   '/clients': [
     http.get<never, never, ClientList>(`${API}/clients`, () =>
       HttpResponse.json({
@@ -103,10 +169,7 @@ export const defaultHandlers: Record<string, HttpHandler | readonly HttpHandler[
 /** Spec paths that intentionally have no default handler, each with a reason. */
 export const handlerExemptions: Record<string, string> = {
   // Pinned with backend S2-03. Each gets a typed handler in the story whose code first calls it.
-  '/categories':
-    'No frontend code calls it yet; the category query lands with the entry form wiring (S2-11 follow-up).',
   '/clients/{clientId}': 'No frontend code calls it yet; the client picker (S2-12) only lists and creates clients.',
-  '/entries/{entryId}': 'No frontend code calls it yet; edit and delete (S2-15) add the handler.',
 };
 
 /** A problem+json response, typed against the spec's Problem schema. */

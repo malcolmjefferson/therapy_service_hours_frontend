@@ -296,7 +296,7 @@ describe('adding a client with +', () => {
     recordCreates((name) => HttpResponse.json(created(name), { status: 201 }), created);
     const onSubmit = vi.fn(() => Promise.resolve({ ok: true } as const));
     const user = userEvent.setup();
-    renderWithProviders(<EntryForm categories={[]} onSubmit={onSubmit} clients={<Harness />} />);
+    renderWithProviders(<EntryForm categories={[]} onSubmit={onSubmit} clients={() => <Harness />} />);
     await user.click(plus());
     await user.type(screen.getByRole('textbox', { name: 'New client or group' }), 'E.F.{Enter}');
     await waitFor(() => {

@@ -1,11 +1,11 @@
 import { RequireSignIn } from '../features/auth';
-import { EntriesPanel } from '../features/entries';
+import { EntriesPage } from '../features/entries';
 
-/** `/app/entries`: the entries table, for signed-in users only. It is its own chunk (FE-54). */
+/** `/app/entries`: the add and edit form with the entries table, for signed-in users only. It is its own chunk (FE-54). */
 export function EntriesRoute() {
   return (
     <RequireSignIn>
-      <EntriesPanel />
+      <EntriesPage />
     </RequireSignIn>
   );
 }

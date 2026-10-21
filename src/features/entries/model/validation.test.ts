@@ -6,6 +6,7 @@ const valid: EntryDraft = {
   categoryId: 'cat-1',
   startTime: '09:00',
   endTime: '10:15',
+  clientIds: [],
   onSite: true,
   notes: 'Pseudonym A',
 };
