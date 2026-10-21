@@ -1,38 +1,13 @@
 import { screen, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { http, HttpResponse } from 'msw';
-import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, expect, test } from 'vitest';
 import type { components } from '../../../lib/api';
 import { API, problemResponse, sampleEntries } from '../../../test/handlers';
-import { renderWithProviders } from '../../../test/render';
 import { server } from '../../../test/server';
-import { EntriesPanel } from './EntriesPanel';
+import { heading, renderPanel, serveEntries } from './panelTestUtils';
 
 type Entry = components['schemas']['Entry'];
-
-function renderPanel(path = '/app/entries') {
-  const router = createMemoryRouter([{ path: '/app/entries', element: <EntriesPanel /> }], { initialEntries: [path] });
-  renderWithProviders(<RouterProvider router={router} />);
-  return { router, user: userEvent.setup() };
-}
-
-/** Serves `total` entries and records the query string of every request. */
-function serveEntries(total: number, items: readonly Entry[] = sampleEntries) {
-  const calls: URLSearchParams[] = [];
-  server.use(
-    http.get(`${API}/entries`, ({ request }) => {
-      const query = new URL(request.url).searchParams;
-      calls.push(query);
-      return HttpResponse.json({
-        items: total === 0 ? [] : [...items],
-        page: { page: Number(query.get('page') ?? '1'), page_size: 50, total_items: total },
-      });
-    }),
-  );
-  return calls;
-}
 
 function firstEntry(): Entry {
   const [entry] = sampleEntries;
@@ -45,8 +20,6 @@ function row(rows: readonly HTMLElement[], index: number): HTMLElement {
   if (!found) throw new Error(`no table row ${String(index)}`);
   return found;
 }
-
-const heading = (name: string) => screen.getByRole('columnheader', { name });
 
 describe('entries table', () => {
   test('lists each entry with its group badge, one client per line, two-decimal hours and on-site', async () => {
