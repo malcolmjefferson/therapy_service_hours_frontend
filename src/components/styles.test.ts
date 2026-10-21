@@ -11,6 +11,9 @@ const componentCss = import.meta.glob<string>('./**/*.module.css', {
   eager: true,
 });
 const files = Object.entries(componentCss);
+// Stylesheets that draw only graphics and hold no text. The text-pair check would read their
+// backgrounds as holding ink text; their colors are held to 3:1 in the graphics block below.
+const graphicsOnly = new Set(['./ProgressBar/ProgressBar.module.css']);
 
 describe('component stylesheets', () => {
   test('are found, so the checks below are not vacuous', () => {
@@ -24,7 +27,7 @@ describe('text and background pairs meet WCAG AA 4.5:1 (FE-44)', () => {
   // text color of its own holds the default ink text.
   const surfaces = ['color-paper', 'color-raised'];
   const pairs = new Map<string, [string, string]>();
-  for (const [file, css] of files) {
+  for (const [file, css] of files.filter(([name]) => !graphicsOnly.has(name))) {
     for (const { selector, declarations } of parseRules(css)) {
       const fg = colorTokenName(declarations.color);
       const bg = colorTokenName(declarations.background ?? declarations['background-color']);
@@ -79,6 +82,33 @@ describe('non-text contrast is at least 3:1 (WCAG 1.4.11)', () => {
   });
 });
 
+describe('progress bar graphics meet 3:1 (WCAG 1.4.11)', () => {
+  const t = colorTokens();
+  const ratio = (a: string, b: string) => contrastRatio(t[a] ?? '', t[b] ?? '');
+
+  test('the track border against the page and raised surfaces', () => {
+    expect(ratio('color-ink-soft', 'color-paper')).toBeGreaterThanOrEqual(3);
+    expect(ratio('color-ink-soft', 'color-raised')).toBeGreaterThanOrEqual(3);
+  });
+
+  test.each(['gold', 'lime', 'red'])(
+    'the %s segment edge shows against the empty track and the pending tint',
+    (tone) => {
+      expect(ratio(`color-${tone}-deep`, 'color-raised')).toBeGreaterThanOrEqual(3);
+      expect(ratio(`color-${tone}-deep`, `color-${tone}-tint`)).toBeGreaterThanOrEqual(3);
+    },
+  );
+
+  test.each(['raised', 'gold', 'lime', 'red', 'gold-tint', 'lime-tint', 'red-tint'])(
+    'a tick shows against color-%s',
+    (backdrop) => {
+      // The tick is an ink line with a raised halo; either one reading is enough.
+      const best = Math.max(ratio('color-ink', `color-${backdrop}`), ratio('color-raised', `color-${backdrop}`));
+      expect(best).toBeGreaterThanOrEqual(3);
+    },
+  );
+});
+
 describe('focus ring is red-deep, 2px', () => {
   test('the token is 2px solid red-deep', () => {
     expect(tokensCss).toMatch(/--focus-ring:\s*2px solid var\(--color-red-deep\);/);
@@ -118,6 +148,7 @@ describe('prefers-reduced-motion is respected (FE-51)', () => {
     expect(guarded.map(([file]) => file).sort()).toEqual([
       './Button/Button.module.css',
       './Dialog/Dialog.module.css',
+      './ProgressBar/ProgressBar.module.css',
       './Toast/Toast.module.css',
     ]);
   });
