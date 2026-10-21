@@ -1,15 +1,16 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ApiError, useApiClient, type components } from '../../../lib/api';
-import { PAGE_SIZE, type EntriesView } from '../model/viewState';
+import { PAGE_SIZE, filterQuery, type EntriesView } from '../model/viewState';
 import { entryKeys } from './entryKeys';
 
 type EntryList = components['schemas']['EntryListResponse'];
 
 /**
- * One page of the caller's own entries in the chosen order. The previous page stays on screen while
- * the next one loads, so sorting and paging do not blank the table.
+ * One page of the caller's own entries that match the filters, in the chosen order. The previous
+ * page stays on screen while the next one loads, so sorting, filtering and paging do not blank the
+ * table. Pass `enabled: false` while the filters cannot be sent, such as a date range that runs backwards.
  */
-export function useEntriesQuery(view: EntriesView) {
+export function useEntriesQuery(view: EntriesView, enabled = true) {
   const client = useApiClient();
   return useQuery<EntryList, ApiError>({
     queryKey: entryKeys.list(view),
@@ -17,7 +18,9 @@ export function useEntriesQuery(view: EntriesView) {
       let result;
       try {
         result = await client.GET('/entries', {
-          params: { query: { sort: view.sort, dir: view.dir, page: view.page, page_size: PAGE_SIZE } },
+          params: {
+            query: { ...filterQuery(view), sort: view.sort, dir: view.dir, page: view.page, page_size: PAGE_SIZE },
+          },
           signal,
         });
       } catch {
@@ -28,6 +31,7 @@ export function useEntriesQuery(view: EntriesView) {
       }
       return result.data;
     },
+    enabled,
     placeholderData: keepPreviousData,
   });
 }

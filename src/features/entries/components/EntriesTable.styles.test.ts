@@ -45,3 +45,18 @@ describe('entries table styles', () => {
     expect(rule('.panel')).toMatchObject({ background: 'var(--color-raised)' });
   });
 });
+
+describe('entries table layout', () => {
+  test('columns take their width in percent from a CSS variable, so the CSP needs no inline widths (FE-46)', () => {
+    expect(rule('.table')).toMatchObject({ 'table-layout': 'fixed' });
+    expect(rule('.col')).toMatchObject({ width: 'var(--col-width)' });
+  });
+
+  test('the resize handle shows the 2px red-deep focus ring', () => {
+    expect(rule('.resizer:focus-visible')).toMatchObject({ outline: 'var(--focus-ring)' });
+  });
+
+  test('a narrow screen scrolls the table sideways instead of squeezing the columns', () => {
+    expect(rule('.scroll')).toMatchObject({ 'overflow-x': 'auto' });
+  });
+});
