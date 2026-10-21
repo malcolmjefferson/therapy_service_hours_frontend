@@ -151,7 +151,7 @@ export interface paths {
          *     A session that overlaps another of the caller's non-rejected sessions is **409**
          *     `urn:therapy-service-hours:problem:entry-overlap`, naming the clashing session in
          *     `conflicting_entry`. Repeating a request with the same `Idempotency-Key` and body returns
-         *     the original result.
+         *     the original result (see the `Idempotency-Key` parameter).
          */
         post: operations["createEntry"];
         delete?: never;
@@ -190,6 +190,70 @@ export interface paths {
          *     Another user's entry is `404`.
          */
         delete: operations["deleteEntry"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/import/markdown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import a Markdown ledger into the caller's own entries
+         * @description Imports the prototype's `.md` ledger (CLAUDE.md section 12.3) as the caller's own data. Both
+         *     layouts are accepted: with and without `Start` and `End` columns. A row without times is
+         *     imported as `needs_time` with its hours kept (FR-IO-02). Client names from the
+         *     `Clients / Groups` section and from the rows are merged into the caller's saved clients,
+         *     ignoring case (FR-IO-03). The file is parsed to typed values first; no cell is ever
+         *     interpreted as SQL, a formula or markup.
+         *
+         *     **Limits:** the file is at most 1 MiB (1,048,576 bytes) and the entries table has at most
+         *     5,000 rows. A larger file is **413** `urn:therapy-service-hours:problem:body-too-large`; more
+         *     rows is **413** `urn:therapy-service-hours:problem:import-too-many-rows`. Both are refused
+         *     before anything is stored. A file that is not a Markdown ledger (wrong content type, not
+         *     UTF-8 text, or no entries table) is **400** `urn:therapy-service-hours:problem:validation`.
+         *
+         *     **Row policy:** the import is one transaction. A bad row does not fail the import: valid
+         *     rows are kept and each row that was not imported is listed in `skipped_rows` with a reason
+         *     (ASM-07). Re-importing the same file imports nothing and reports every row as a
+         *     `duplicate`. The 200 response is the report; it is also what an idempotent retry returns.
+         */
+        post: operations["importMarkdown"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/export/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Page through all of the caller's own entries for export
+         * @description Everything a Markdown, CSV or PDF export needs, for the caller's entries only (FR-IO-04):
+         *     date, `start_time` and `end_time` (absent on a `needs_time` entry), hours, category with its
+         *     group, clients, on-site flag, notes and status. The client builds the file, so the export
+         *     works the same way for every format and the PDF needs no second call (FR-IO-06).
+         *
+         *     There are no filters: an export is the whole ledger. The order is oldest first
+         *     (`session_date`, then start time, then `id`) and does not change between pages. Entries
+         *     without times come before timed entries of the same date. The page size is capped at 200,
+         *     so a client reads `page` 1 up to `ceil(total_items / page_size)`.
+         */
+        get: operations["exportEntries"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -348,6 +412,69 @@ export interface components {
             /** Format: int32 */
             entry_count?: number;
         };
+        /** @description The upload. Unknown parts are rejected. */
+        ImportMarkdownRequest: {
+            /**
+             * Format: binary
+             * @description The Markdown ledger, UTF-8 text, at most 1 MiB. Either layout is accepted.
+             */
+            file: string;
+        };
+        /**
+         * @description What an import did. Counts and lists contain no cell content other than client names,
+         *     which are pseudonyms or initials only (CLAUDE.md section 0.7).
+         */
+        ImportReport: {
+            /**
+             * Format: int32
+             * @description Rows found in the entries table; `imported_count + skipped_count`.
+             */
+            total_rows: number;
+            /**
+             * Format: int32
+             * @description Entries created.
+             */
+            imported_count: number;
+            /**
+             * Format: int32
+             * @description Of the imported entries, how many have no times and are flagged `needs_time`.
+             */
+            needs_time_count: number;
+            /**
+             * @description Each distinct client name found in the file (the `Clients / Groups` section and the rows,
+             *     ignoring case) and what happened to it. Ordered by name, then `id`.
+             */
+            merged_clients: components["schemas"]["MergedClient"][];
+            /** Format: int32 */
+            skipped_count: number;
+            /** @description Rows that were not imported, in file order, each with the reason. */
+            skipped_rows: components["schemas"]["SkippedRow"][];
+        };
+        MergedClient: {
+            client: components["schemas"]["Client"];
+            /** @description True when the import saved a new client; false when a saved client already had that name. */
+            created: boolean;
+        };
+        SkippedRow: {
+            /**
+             * Format: int32
+             * @description 1-based position in the entries table, not counting the header rows.
+             */
+            row: number;
+            reason: components["schemas"]["SkipReason"];
+            /** @description The column that caused the skip, when one did. Absent for `duplicate`, `overlap` and `malformed-row`. */
+            field?: string;
+            /** @description Human-readable explanation. It never quotes the cell. */
+            message: string;
+        };
+        /**
+         * @description Why a row was not imported. `duplicate`: an existing entry has the same date, category,
+         *     hours, notes and client set (ASM-07). `overlap`: the row has times that overlap another of
+         *     the caller's non-rejected sessions. `malformed-row`: the row does not have the columns of
+         *     the table. The others name the column whose value is invalid.
+         * @enum {string}
+         */
+        SkipReason: "duplicate" | "overlap" | "malformed-row" | "invalid-date" | "invalid-time" | "invalid-hours" | "unknown-category" | "invalid-client" | "invalid-notes";
         GatewayUnauthorized: {
             message: string;
         };
@@ -440,6 +567,7 @@ export interface components {
          *     `urn:therapy-service-hours:problem:entry-overlap` (the session overlaps another of the
          *     caller's non-rejected sessions; `conflicting_entry` names it) or
          *     `urn:therapy-service-hours:problem:entry-locked` (the entry is approved and cannot change).
+         *     On `POST /entries` it can also be an idempotency problem (see the `Idempotency-Key` parameter).
          */
         EntryConflict: {
             headers: {
@@ -454,6 +582,7 @@ export interface components {
          *     clients has that name, ignoring case; `existing_client` is that client) or
          *     `urn:therapy-service-hours:problem:client-in-use` (entries still use the client;
          *     `entry_count` says how many; repeat with `confirm_detach=true` to delete it anyway).
+         *     On `POST /clients` it can also be an idempotency problem (see the `Idempotency-Key` parameter).
          */
         ClientConflict: {
             headers: {
@@ -461,6 +590,32 @@ export interface components {
             };
             content: {
                 "application/problem+json": components["schemas"]["ClientConflictProblem"];
+            };
+        };
+        /**
+         * @description The request cannot be completed in the current state. `type` is an idempotency problem (see
+         *     the `Idempotency-Key` parameter): `urn:therapy-service-hours:problem:idempotency-key-reused`
+         *     or `urn:therapy-service-hours:problem:idempotency-key-in-progress`.
+         */
+        Conflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
+        /**
+         * @description The upload is over a limit. `type` is `urn:therapy-service-hours:problem:body-too-large`
+         *     (the file is over 1 MiB) or `urn:therapy-service-hours:problem:import-too-many-rows` (the
+         *     entries table has more than 5,000 rows). Nothing was stored.
+         */
+        PayloadTooLarge: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
             };
         };
         /** @description An error, as RFC 7807 problem details. */
@@ -478,7 +633,16 @@ export interface components {
         Page: number;
         /** @description Items per page (GO-56, ARC-16). */
         PageSize: number;
-        /** @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). */
+        /**
+         * @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). Keys are kept
+         *     for 24 hours and belong to the caller. Repeating a request with the same key and the same
+         *     body returns the original **successful** response, marked `Idempotency-Replayed: true`,
+         *     without creating anything again. The same key with a different body or endpoint is **409**
+         *     `urn:therapy-service-hours:problem:idempotency-key-reused`. If the first request is still
+         *     running, the answer is **409** `urn:therapy-service-hours:problem:idempotency-key-in-progress`
+         *     with `Retry-After`; repeat the same request. An error response is not stored, so a request
+         *     that failed can be sent again with the same key once its cause is fixed.
+         */
         IdempotencyKey: string;
         /** @description Entry identifier. */
         EntryId: string;
@@ -608,7 +772,16 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). */
+                /**
+                 * @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). Keys are kept
+                 *     for 24 hours and belong to the caller. Repeating a request with the same key and the same
+                 *     body returns the original **successful** response, marked `Idempotency-Replayed: true`,
+                 *     without creating anything again. The same key with a different body or endpoint is **409**
+                 *     `urn:therapy-service-hours:problem:idempotency-key-reused`. If the first request is still
+                 *     running, the answer is **409** `urn:therapy-service-hours:problem:idempotency-key-in-progress`
+                 *     with `Retry-After`; repeat the same request. An error response is not stored, so a request
+                 *     that failed can be sent again with the same key once its cause is fixed.
+                 */
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path?: never;
@@ -744,7 +917,16 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). */
+                /**
+                 * @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). Keys are kept
+                 *     for 24 hours and belong to the caller. Repeating a request with the same key and the same
+                 *     body returns the original **successful** response, marked `Idempotency-Replayed: true`,
+                 *     without creating anything again. The same key with a different body or endpoint is **409**
+                 *     `urn:therapy-service-hours:problem:idempotency-key-reused`. If the first request is still
+                 *     running, the answer is **409** `urn:therapy-service-hours:problem:idempotency-key-in-progress`
+                 *     with `Retry-After`; repeat the same request. An error response is not stored, so a request
+                 *     that failed can be sent again with the same key once its cause is fixed.
+                 */
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path?: never;
@@ -855,6 +1037,114 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["EntryConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    importMarkdown: {
+        parameters: {
+            query?: never;
+            header: {
+                /**
+                 * @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). Keys are kept
+                 *     for 24 hours and belong to the caller. Repeating a request with the same key and the same
+                 *     body returns the original **successful** response, marked `Idempotency-Replayed: true`,
+                 *     without creating anything again. The same key with a different body or endpoint is **409**
+                 *     `urn:therapy-service-hours:problem:idempotency-key-reused`. If the first request is still
+                 *     running, the answer is **409** `urn:therapy-service-hours:problem:idempotency-key-in-progress`
+                 *     with `Retry-After`; repeat the same request. An error response is not stored, so a request
+                 *     that failed can be sent again with the same key once its cause is fixed.
+                 */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["ImportMarkdownRequest"];
+            };
+        };
+        responses: {
+            /** @description The import ran. The report says what was imported and what was skipped. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "total_rows": 4,
+                     *       "imported_count": 2,
+                     *       "needs_time_count": 1,
+                     *       "merged_clients": [
+                     *         {
+                     *           "client": {
+                     *             "id": "00000000-0000-4000-8000-0000000000d1",
+                     *             "name": "Pseudonym A"
+                     *           },
+                     *           "created": true
+                     *         },
+                     *         {
+                     *           "client": {
+                     *             "id": "00000000-0000-4000-8000-0000000000d2",
+                     *             "name": "Pseudonym B"
+                     *           },
+                     *           "created": false
+                     *         }
+                     *       ],
+                     *       "skipped_count": 2,
+                     *       "skipped_rows": [
+                     *         {
+                     *           "row": 3,
+                     *           "reason": "duplicate",
+                     *           "message": "Same date, category, hours, notes and clients as an existing entry."
+                     *         },
+                     *         {
+                     *           "row": 4,
+                     *           "reason": "unknown-category",
+                     *           "field": "category",
+                     *           "message": "The category is not one of the service categories."
+                     *         }
+                     *       ]
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ImportReport"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            413: components["responses"]["PayloadTooLarge"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    exportEntries: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: components["parameters"]["Page"];
+                /** @description Items per page (GO-56, ARC-16). */
+                page_size?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of the caller's entries, oldest first. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             default: components["responses"]["Problem"];
         };
     };
