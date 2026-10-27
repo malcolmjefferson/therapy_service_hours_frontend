@@ -33,6 +33,15 @@ describe('saveFailure', () => {
     );
   });
 
+  test('the in-progress 409 tells the person the first save is still running and is safe to repeat', () => {
+    const failure = saveFailure(
+      new ApiError(409, problem(409, { type: 'urn:therapy-service-hours:problem:idempotency-key-in-progress' })),
+    );
+    expect(failure.message).toBe(
+      'Your earlier save of this entry is still being processed. Wait a moment and try again. It will not be saved twice.',
+    );
+  });
+
   test.each([
     [undefined, 'The server could not be reached. Check your connection and try again.'],
     [404, 'This entry no longer exists. Reload your entries.'],

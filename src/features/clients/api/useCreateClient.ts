@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ApiError, useApiClient, type components } from '../../../lib/api';
+import { ApiError, retryWhileInProgress, useApiClient, type components } from '../../../lib/api';
 import { clientKeys } from './clientKeys';
 
 type Client = components['schemas']['Client'];
@@ -24,10 +24,13 @@ export function useCreateClient() {
     mutationFn: async ({ name, idempotencyKey }) => {
       let result;
       try {
-        result = await client.POST('/clients', {
-          body: { name },
-          params: { header: { 'Idempotency-Key': idempotencyKey } },
-        });
+        // The same key and name go out again while the server still runs the first request (FE-34).
+        result = await retryWhileInProgress(() =>
+          client.POST('/clients', {
+            body: { name },
+            params: { header: { 'Idempotency-Key': idempotencyKey } },
+          }),
+        );
       } catch {
         throw new ApiError(undefined, undefined);
       }
