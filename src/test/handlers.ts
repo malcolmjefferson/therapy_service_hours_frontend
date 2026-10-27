@@ -152,6 +152,17 @@ export const defaultHandlers: Record<string, HttpHandler | readonly HttpHandler[
     ),
     http.delete(`${API}/entries/:entryId`, () => new HttpResponse(null, { status: 204 })),
   ],
+  // The whole ledger, oldest first, in the pages the caller asks for (capped at 200 like the API).
+  '/export/entries': http.get<never, never, EntryList>(`${API}/export/entries`, ({ request }) => {
+    const url = new URL(request.url);
+    const page = Number(url.searchParams.get('page') ?? '1');
+    const pageSize = Math.min(Number(url.searchParams.get('page_size') ?? '50'), 200);
+    const oldestFirst = [...sampleEntries].reverse();
+    return HttpResponse.json({
+      items: oldestFirst.slice((page - 1) * pageSize, page * pageSize),
+      page: { page, page_size: pageSize, total_items: oldestFirst.length },
+    });
+  }),
   '/clients': [
     http.get<never, never, ClientList>(`${API}/clients`, () =>
       HttpResponse.json({
@@ -172,7 +183,6 @@ export const handlerExemptions: Record<string, string> = {
   '/clients/{clientId}': 'No frontend code calls it yet; the client picker (S2-12) only lists and creates clients.',
   // Pinned with backend S4-01. Each gets a typed handler in the story whose code first calls it.
   '/import/markdown': 'No frontend code calls it yet; the import dialog (S4-10) is the first caller.',
-  '/export/entries': 'No frontend code calls it yet; the exporters (S4-07 to S4-09) are the first callers.',
 };
 
 /** A problem+json response, typed against the spec's Problem schema. */

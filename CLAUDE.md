@@ -472,6 +472,27 @@ A working single-file HTML app (`therapy-hours-tracker.html`) defines the UX to 
 - Older files may have a single client and no `Clients / Groups` section: merge client names found in entries into the saved list (case-insensitive de-dupe).
 - **New export format** adds `Start` and `End` columns; the importer must accept both layouts (no times means "Needs time").
 
+**Markdown export (S4-07)** is written by `serializeLedger` in `src/features/export` from the pages of `GET /export/entries`:
+```
+# Clinical Hours Ledger
+## Summary
+- Direct Service: 1.25 hours
+- Indirect Service: 1.00 hours
+- Supervision: 0.00 hours
+- Total Activity: 2.25 hours
+- Total Time On-site: 1.25 hours
+## Clients / Groups
+- A.B.
+## Entries
+| Date | Start | End | Group | Category | Client | Hours | On-site | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 2026-01-12 | 13:00 | 14:15 | Direct Service | Individual Counseling | A.B.; C.D. | 1.25 | Yes | text |
+```
+- Entries are oldest first. `Start` and `End` are `HH:MM`, or `—` for an entry that still needs times. Hours have two decimals, from the entry's minutes. The Summary counts hours as goals do (rejected entries left out); the importer ignores it.
+- Clients / Groups lists every saved client, then clients found on entries, ignoring case; `- —` when there are none. A literal `|` in a cell is `\|`.
+- A row stays on one line, so a **line break in notes becomes a space**. A client name containing `;` or exactly `—` cannot be told from the separator or the none marker. Status is not in the file: re-imported entries start as pending.
+- Import after export gives the same entries; this is tested against a reader that follows `parse.go` (`src/test/ledgerParser.ts`).
+
 ---
 
 ## 13. CI/CD
