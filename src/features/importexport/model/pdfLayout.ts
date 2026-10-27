@@ -20,28 +20,36 @@ function widestPrefix(word: string, maxWidth: number, measure: Measure): number 
 export function wrapText(text: string, maxWidth: number, measure: Measure): string[] {
   const lines: string[] = [];
   let line = '';
+  let lineWidth = 0;
   const push = () => {
     lines.push(line);
     line = '';
+    lineWidth = 0;
   };
+  // Measuring a whole line again for every word it grows by would make a long note cost its length squared, so a line
+  // is measured word by word. Kerning across a space is far below a point, so the sum is the width to well within a point.
+  const spaceWidth = measure(' ');
+  // Look at no more than a line's worth of characters at a time, so a very long unbroken note stays cheap to measure.
+  const reach = Math.max(2, Math.ceil(maxWidth * 2));
   for (const word of text.split(' ').filter((w) => w !== '')) {
     let rest = word;
-    if (line !== '' && measure(`${line} ${rest}`) <= maxWidth) {
+    let restWidth = word.length > reach ? Number.POSITIVE_INFINITY : measure(word);
+    if (line !== '' && lineWidth + spaceWidth + restWidth <= maxWidth) {
       line = `${line} ${rest}`;
+      lineWidth += spaceWidth + restWidth;
       continue;
     }
     if (line !== '') push();
-    // Look at no more than a line's worth of characters at a time, so a very long unbroken note stays cheap to measure.
-    const reach = Math.max(2, Math.ceil(maxWidth * 2));
-    while (rest.length > 1) {
-      const chunk = rest.slice(0, reach);
-      if (chunk.length === rest.length && measure(chunk) <= maxWidth) break;
-      const cut = widestPrefix(chunk, maxWidth, measure);
+    while (restWidth > maxWidth && rest.length > 1) {
+      const cut = widestPrefix(rest.slice(0, reach), maxWidth, measure);
       line = rest.slice(0, cut);
       push();
       rest = rest.slice(cut);
+      // More than a line's worth left is, by the choice of `reach`, still too wide to fit.
+      restWidth = rest.length > reach ? Number.POSITIVE_INFINITY : measure(rest);
     }
     line = rest;
+    lineWidth = measure(rest);
   }
   if (line !== '' || lines.length === 0) push();
   return lines;

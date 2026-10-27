@@ -2,7 +2,7 @@ import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument, rgb, type Color, type PDFFont, type PDFPage } from 'pdf-lib';
 import { colorTokens } from '../../../theme/tokenValues';
 import type { GoalLine } from '../model/goalSummary';
-import { layoutRows, paginateRows, type Measure, type RowSlice } from '../model/pdfLayout';
+import { layoutRows, paginateRows, type LaidOutRow, type Measure, type RowSlice } from '../model/pdfLayout';
 import type { PdfReport } from '../model/pdfReport';
 import { FONT_FILES, dataUrlBytes } from './fonts';
 
@@ -17,6 +17,16 @@ const LINE_HEIGHT = 11;
 const ROW_PAD = 5;
 const HEADER_HEIGHT = 20;
 const GOAL_ROW_HEIGHT = 18;
+/** Rows laid out before the browser gets a turn, so a long ledger does not freeze the page while it is made. */
+const ROWS_PER_TURN = 100;
+const PAGES_PER_TURN = 5;
+
+/** Lets the browser paint and handle input between chunks of work. */
+function yieldToBrowser(): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+}
 
 function hexToRgb(hex: string): Color {
   const n = Number.parseInt(hex.slice(1), 16);
@@ -80,12 +90,23 @@ export async function buildPdf(report: PdfReport): Promise<Uint8Array> {
   const tableWidth = PAGE_WIDTH - 2 * MARGIN;
   const columnWidths = report.columns.map((column) => column.share * tableWidth);
   const textWidths = columnWidths.map((width) => width - 2 * CELL_PAD);
-  const measureBody: Measure = (text) => body.widthOfTextAtSize(text, BODY_SIZE);
-  const laidOut = layoutRows(
-    report.rows.map((row) => row.map(clean)),
-    textWidths,
-    measureBody,
-  );
+  // Measuring text is the slow part of laying out a long ledger, and the same words, dates and statuses come back
+  // again and again, so each distinct string is measured once.
+  const widths = new Map<string, number>();
+  const measureBody: Measure = (text) => {
+    let width = widths.get(text);
+    if (width === undefined) {
+      width = body.widthOfTextAtSize(text, BODY_SIZE);
+      widths.set(text, width);
+    }
+    return width;
+  };
+  const cleanRows = report.rows.map((row) => row.map(clean));
+  const laidOut: LaidOutRow[] = [];
+  for (let from = 0; from < cleanRows.length; from += ROWS_PER_TURN) {
+    laidOut.push(...layoutRows(cleanRows.slice(from, from + ROWS_PER_TURN), textWidths, measureBody));
+    await yieldToBrowser();
+  }
 
   // Title block and goal summary sit above the table on the first page.
   const summaryHeight = 30 + 22 + (report.goals.length + 1) * GOAL_ROW_HEIGHT + 16;
@@ -205,7 +226,8 @@ export async function buildPdf(report: PdfReport): Promise<Uint8Array> {
     return y - 16;
   };
 
-  pages.forEach((slices, index) => {
+  for (const [index, slices] of pages.entries()) {
+    if (index > 0 && index % PAGES_PER_TURN === 0) await yieldToBrowser();
     const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     const top = index === 0 ? drawSummary(page) : bodyTop;
     drawHeadings(page, top);
@@ -215,7 +237,7 @@ export async function buildPdf(report: PdfReport): Promise<Uint8Array> {
     const footer = `Page ${String(index + 1)} of ${String(pages.length)}`;
     drawText(page, footer, PAGE_WIDTH - MARGIN - body.widthOfTextAtSize(footer, 8), MARGIN, body, 8, colors.soft);
     drawText(page, clean(`${report.title}, ${report.generatedOn}`), MARGIN, MARGIN, body, 8, colors.soft);
-  });
+  }
 
   // Plain objects rather than compressed object streams: smaller risk with older viewers and the fonts stay checkable.
   return doc.save({ useObjectStreams: false });

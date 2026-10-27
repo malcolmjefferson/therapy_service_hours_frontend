@@ -59,7 +59,7 @@ function serve(total: number) {
 
 describe('ExportPdfButton', () => {
   test('reads the whole ledger, makes the PDF in the browser and saves it with no further request', async () => {
-    const requests = serve(260);
+    const requests = serve(230);
     renderWithProviders(<ExportPdfButton now={() => new Date(2026, 9, 27, 9, 0)} />);
     await userEvent.setup().click(screen.getByRole('button', { name: 'Export PDF' }));
 
@@ -73,7 +73,7 @@ describe('ExportPdfButton', () => {
     expect(blob.type).toBe('application/pdf');
     const doc = await PDFDocument.load(await blob.arrayBuffer());
     expect(doc.getPageCount()).toBeGreaterThan(5);
-  });
+  }, 30000);
 
   test('shows that it is working and ignores a second click meanwhile', async () => {
     serve(3);

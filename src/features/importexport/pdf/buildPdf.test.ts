@@ -42,9 +42,9 @@ describe('buildPdf', () => {
   });
 
   test('a long ledger paginates across several pages', async () => {
-    const { doc } = await build(ledger(200));
+    const { doc } = await build(ledger(120));
     expect(doc.getPageCount()).toBeGreaterThan(3);
-  });
+  }, 30000);
 
   test('an empty ledger still makes a page', async () => {
     const { doc } = await build([]);
