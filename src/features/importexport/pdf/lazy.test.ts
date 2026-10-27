@@ -31,7 +31,7 @@ describe('the PDF library stays out of the initial bundle (FE-55)', () => {
 
   test('the builder is reached only through a dynamic import()', () => {
     const importers = files.filter(
-      ([path, text]) => !path.startsWith('features/importexport/pdf/') && /pdf\/buildPdf/.test(text),
+      ([path, text]) => !path.startsWith('features/importexport/pdf/') && text.includes('pdf/buildPdf'),
     );
     expect(importers.map(([path]) => path)).toEqual(['features/importexport/hooks/usePdfExport.ts']);
     for (const [, text] of importers) {
