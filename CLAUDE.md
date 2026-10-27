@@ -472,6 +472,8 @@ A working single-file HTML app (`therapy-hours-tracker.html`) defines the UX to 
 - Older files may have a single client and no `Clients / Groups` section: merge client names found in entries into the saved list (case-insensitive de-dupe).
 - **New export format** adds `Start` and `End` columns; the importer must accept both layouts (no times means "Needs time").
 
+**CSV export (FR-IO-05, SEC-37):** one header row, then one row per entry, oldest first, with the columns `Date, Start, End, Group, Category, Client, Hours, On-site, Notes, Status`. `Start` and `End` are empty on a "Needs time" entry. Clients are joined with `; `, hours have two decimals and on-site is `Yes` or `No`. Rows end in CRLF (RFC 4180) and every field is quoted with embedded quotes doubled, so commas, quotes and line breaks in notes survive. A field that starts with `=`, `+`, `-`, `@`, a tab or a carriage return gets a leading `'` so a spreadsheet shows it as text. The download starts with a UTF-8 byte-order mark so Excel reads accented names correctly. The serializer is `entriesToCsv` in `src/features/importexport/model/csv.ts`.
+
 ---
 
 ## 13. CI/CD

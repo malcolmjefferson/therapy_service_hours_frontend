@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button, useToast } from '../../../components';
+import { ExportCsvButton } from '../../importexport';
 import { useDeleteEntry, type DeleteEntryOutcome } from '../api/useDeleteEntry';
 import { useEntriesQuery } from '../api/useEntriesQuery';
 import { useEntriesView } from '../hooks/useEntriesView';
@@ -126,10 +127,8 @@ export function EntriesPanel({ onEdit, onDeleted }: EntriesPanelProps) {
           >
             Clear filters
           </Button>
-          {/* Placeholders until the import and export stories (E4) wire them up. */}
-          <Button variant="ghost" disabled>
-            Export
-          </Button>
+          <ExportCsvButton />
+          {/* A placeholder until the import dialog (S4-10) wires it up. */}
           <Button variant="ghost" disabled>
             Import
           </Button>
