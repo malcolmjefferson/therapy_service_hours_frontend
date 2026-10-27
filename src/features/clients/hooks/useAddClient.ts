@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ApiError } from '../../../lib/api';
+import { ApiError, isInProgressError } from '../../../lib/api';
 import { useCreateClient } from '../api/useCreateClient';
 import {
   MAX_CLIENTS_PER_ENTRY,
@@ -21,6 +21,9 @@ function saveFailure(error: unknown): string {
   if (error.status === undefined) return 'The server could not be reached. Check your connection and try again.';
   if (error.status === 400) return error.problem?.detail ?? 'That name cannot be saved.';
   if (error.status === 429) return 'Too many requests. Wait a moment and try again.';
+  if (isInProgressError(error)) {
+    return 'Your earlier save of this client is still being processed. Wait a moment and try again. It will not be saved twice.';
+  }
   return 'The client could not be saved. Try again.';
 }
 

@@ -1,4 +1,4 @@
-import { ApiError, type components } from '../../../lib/api';
+import { ApiError, isInProgressError, type components } from '../../../lib/api';
 import type { EntryErrors, EntryField } from './validation';
 
 type ProblemField = components['schemas']['ProblemField'];
@@ -28,6 +28,11 @@ function fieldErrors(problems: readonly ProblemField[] | undefined): EntryErrors
   return errors;
 }
 
+/** The first save is still running on the server. Sending again is safe: the same key means it is saved once. */
+export function inProgressMessage(noun: string): string {
+  return `Your earlier save of this ${noun} is still being processed. Wait a moment and try again. It will not be saved twice.`;
+}
+
 /** Plain-language text for a failed save. The raw problem payload is never shown (FE-37). */
 export function saveFailure(error: unknown, noun = 'entry'): SaveFailure {
   if (!(error instanceof ApiError)) return { ok: false, message: `The ${noun} could not be saved. Try again.` };
@@ -42,6 +47,7 @@ export function saveFailure(error: unknown, noun = 'entry'): SaveFailure {
   }
   if (error.status === 404) return { ok: false, message: 'This entry no longer exists. Reload your entries.' };
   if (error.status === 429) return { ok: false, message: 'Too many requests. Wait a moment and try again.' };
+  if (isInProgressError(error)) return { ok: false, message: inProgressMessage(noun) };
   return { ok: false, message: `The ${noun} could not be saved. Try again.` };
 }
 

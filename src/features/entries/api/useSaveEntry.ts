@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ApiError, useApiClient, type components } from '../../../lib/api';
+import { ApiError, retryWhileInProgress, useApiClient, type components } from '../../../lib/api';
 import { entryConflict, entryProblem, type EntryConflict } from './entryOutcome';
 import { entryKeys } from './entryKeys';
 
@@ -27,7 +27,10 @@ export function useCreateEntry() {
     mutationFn: async ({ body, idempotencyKey }) => {
       let result;
       try {
-        result = await client.POST('/entries', { body, params: { header: { 'Idempotency-Key': idempotencyKey } } });
+        // The same key and body go out again while the server still runs the first request (FE-34).
+        result = await retryWhileInProgress(() =>
+          client.POST('/entries', { body, params: { header: { 'Idempotency-Key': idempotencyKey } } }),
+        );
       } catch {
         throw new ApiError(undefined, undefined);
       }

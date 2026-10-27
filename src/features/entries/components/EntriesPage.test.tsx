@@ -4,7 +4,7 @@ import axe from 'axe-core';
 import { http, HttpResponse } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, expect, test } from 'vitest';
-import type { components } from '../../../lib/api';
+import { IN_PROGRESS_RETRIES, type components } from '../../../lib/api';
 import { API, entryFromRequest, problemResponse, sampleClients, sampleEntries } from '../../../test/handlers';
 import { renderWithProviders } from '../../../test/render';
 import { server } from '../../../test/server';
@@ -69,6 +69,19 @@ function recordUpdates(respond: (body: EntryRequest, id: string) => Response) {
     }),
   );
   return calls;
+}
+
+/** The 409 the API sends while the first request with the same Idempotency-Key still runs. */
+function inProgressResponse() {
+  return HttpResponse.json(
+    {
+      type: 'urn:therapy-service-hours:problem:idempotency-key-in-progress',
+      title: 'Request still in progress',
+      status: 409,
+    },
+    // The API sends 1; 0 keeps the test from waiting a second per retry.
+    { status: 409, headers: { 'Content-Type': 'application/problem+json', 'Retry-After': '0' } },
+  );
 }
 
 function overlapResponse() {
@@ -175,6 +188,51 @@ describe('adding an entry', () => {
       expect(calls).toHaveLength(3);
     });
     expect(calls[2]?.key).not.toBe(calls[0]?.key);
+  });
+
+  test('a create the server is still running is sent again with the same key and saved once', async () => {
+    const items = serveEntries([...sampleEntries]);
+    let attempts = 0;
+    const calls = recordCreates((body) => {
+      attempts += 1;
+      if (attempts <= 2) return inProgressResponse();
+      const created = entryFromRequest(body);
+      items.unshift(created);
+      return HttpResponse.json(created, { status: 201 });
+    });
+    const user = renderPage();
+    await addForm();
+    await fillValid(user);
+    await user.click(screen.getByRole('button', { name: 'Add entry' }));
+
+    expect(await screen.findByText('Entry added.')).toBeVisible();
+    expect(calls).toHaveLength(3);
+    expect(new Set(calls.map((call) => call.key)).size).toBe(1);
+    expect(new Set(calls.map((call) => JSON.stringify(call.body))).size).toBe(1);
+  });
+
+  test('a create that stays in progress is explained, and the next try reuses the key', async () => {
+    let attempts = 0;
+    const calls = recordCreates((body) => {
+      attempts += 1;
+      return attempts <= IN_PROGRESS_RETRIES + 1
+        ? inProgressResponse()
+        : HttpResponse.json(entryFromRequest(body), { status: 201 });
+    });
+    const user = renderPage();
+    await addForm();
+    await fillValid(user);
+    await user.click(screen.getByRole('button', { name: 'Add entry' }));
+
+    expect(await screen.findByText(/still being processed/)).toBeVisible();
+    expect(calls).toHaveLength(IN_PROGRESS_RETRIES + 1);
+    // What the person typed stays, so trying again is one click.
+    expect(field('Date')).toHaveValue('2026-10-12');
+
+    await user.click(screen.getByRole('button', { name: 'Add entry' }));
+    expect(await screen.findByText('Entry added.')).toBeVisible();
+    expect(calls).toHaveLength(IN_PROGRESS_RETRIES + 2);
+    expect(new Set(calls.map((call) => call.key)).size).toBe(1);
   });
 
   test('server validation errors land on the matching fields', async () => {
