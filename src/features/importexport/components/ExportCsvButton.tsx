@@ -1,36 +1,26 @@
 import { Button, useToast } from '../../../components';
-import { downloadTextFile } from '../../../lib/download';
-import { useExportEntries } from '../api/useExportEntries';
-import { csvFileName, entriesToCsv } from '../model/csv';
+import { CSV_EXPORT_FAILURE, useCsvExport } from '../hooks/useCsvExport';
 
-/** Downloads every entry as a CSV file (FR-IO-05). Excel is the usual reader, so the file starts with a UTF-8 byte-order mark. */
+/** Downloads every entry as a CSV file (FR-IO-05) and announces the result by toast. */
 export function ExportCsvButton() {
   const toast = useToast();
-  const exportEntries = useExportEntries();
-
-  const save = async () => {
-    let entries;
-    try {
-      entries = await exportEntries.mutateAsync();
-    } catch {
-      toast.show('Your entries could not be exported. Check your connection and try again.', { tone: 'error' });
-      return;
-    }
-    downloadTextFile(csvFileName(new Date()), 'text/csv;charset=utf-8', entriesToCsv(entries, { bom: true }));
-    toast.show(`Exported ${String(entries.length)} ${entries.length === 1 ? 'entry' : 'entries'} to CSV.`, {
-      tone: 'success',
-    });
-  };
-
+  const { mutate, isPending } = useCsvExport();
   return (
     <Button
       variant="ghost"
-      disabled={exportEntries.isPending}
+      disabled={isPending}
       onClick={() => {
-        void save();
+        mutate(undefined, {
+          onSuccess: (count) => {
+            toast.show(`Exported ${String(count)} ${count === 1 ? 'entry' : 'entries'} to CSV.`, { tone: 'success' });
+          },
+          onError: () => {
+            toast.show(CSV_EXPORT_FAILURE, { tone: 'error' });
+          },
+        });
       }}
     >
-      {exportEntries.isPending ? 'Exporting…' : 'Export CSV'}
+      {isPending ? 'Exporting…' : 'Export CSV'}
     </Button>
   );
 }

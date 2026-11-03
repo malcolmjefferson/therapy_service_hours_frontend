@@ -152,12 +152,17 @@ export const defaultHandlers: Record<string, HttpHandler | readonly HttpHandler[
     ),
     http.delete(`${API}/entries/:entryId`, () => new HttpResponse(null, { status: 204 })),
   ],
-  '/export/entries': http.get<never, never, EntryList>(`${API}/export/entries`, () =>
-    HttpResponse.json({
-      items: [...sampleEntries].reverse(),
-      page: { page: 1, page_size: 200, total_items: sampleEntries.length },
-    }),
-  ),
+  // The whole ledger oldest first, `page_size` at a time, as the export endpoint serves it.
+  '/export/entries': http.get<never, never, EntryList>(`${API}/export/entries`, ({ request }) => {
+    const query = new URL(request.url).searchParams;
+    const page = Number(query.get('page') ?? '1');
+    const pageSize = Number(query.get('page_size') ?? '50');
+    const oldestFirst = [...sampleEntries].reverse();
+    return HttpResponse.json({
+      items: oldestFirst.slice((page - 1) * pageSize, page * pageSize),
+      page: { page, page_size: pageSize, total_items: oldestFirst.length },
+    });
+  }),
   '/clients': [
     http.get<never, never, ClientList>(`${API}/clients`, () =>
       HttpResponse.json({
@@ -176,7 +181,8 @@ export const defaultHandlers: Record<string, HttpHandler | readonly HttpHandler[
 export const handlerExemptions: Record<string, string> = {
   // Pinned with backend S2-03. Each gets a typed handler in the story whose code first calls it.
   '/clients/{clientId}': 'No frontend code calls it yet; the client picker (S2-12) only lists and creates clients.',
-  // Pinned with backend S4-01. Each gets a typed handler in the story whose code first calls it.
+  // Pinned with backend S4-01. Each gets a typed handler in the story whose code first calls it
+  // (`/export/entries` got its handler with the PDF export, S4-09).
   '/import/markdown': 'No frontend code calls it yet; the import dialog (S4-10) is the first caller.',
 };
 

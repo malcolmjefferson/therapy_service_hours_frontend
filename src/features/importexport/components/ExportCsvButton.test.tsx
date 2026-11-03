@@ -81,7 +81,9 @@ describe('ExportCsvButton', () => {
     expect(text?.startsWith('﻿"Date","Start"')).toBe(false); // the BOM is stripped by Blob.text()
     expect(text).toContain('"2026-01-05","09:00","10:00","Indirect Service","Staff Meetings"');
     expect(text?.indexOf('2026-01-05')).toBeLessThan(text?.indexOf('2026-01-12') ?? -1); // oldest first
-    expect(revoke).toHaveBeenCalledWith('blob:test');
+    await waitFor(() => {
+      expect(revoke).toHaveBeenCalledWith('blob:test');
+    });
   });
 
   test('starts the file with a byte-order mark', async () => {
@@ -154,7 +156,7 @@ describe('ExportCsvButton', () => {
       http.get(`${API}/export/entries`, ({ request }) => {
         const page = Number(new URL(request.url).searchParams.get('page'));
         if (page === 2) return HttpResponse.error();
-        return HttpResponse.json({ items: [], page: { page, page_size: 200, total_items: 400 } });
+        return HttpResponse.json({ items: [template], page: { page, page_size: 200, total_items: 400 } });
       }),
     );
     const user = renderButton();
