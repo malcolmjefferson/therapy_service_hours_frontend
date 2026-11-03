@@ -76,3 +76,13 @@ sign-in; separate browser verification observed the admin profile, actual hosted
 to the signed-out landing, repeat sign-in and page-reload reauthentication. Proof screenshots
 remain local, outside this public repository. Actual Google uninvited/deactivated acceptance
 remains open; synthetic protocol and native tests do not replace those checks.
+
+## Log-an-entry journey on the native route (S2-17)
+
+`e2e/log-entry.spec.ts` reuses this route through `e2e/native-browser.ts`, which installs the same
+protocol interceptions for `test-invited`. The one difference from the S1-13 suite is the relay: the
+entries page calls `/api/v1/categories`, `/clients` and `/entries` as well as `/me`, so every
+same-origin `/api/v1/` request is relayed, without redirect forwarding, with the real native ID
+token. Requests to any other origin are never touched, and Google stays forbidden. Gateway,
+Lambdas and the database answer for real. The runner uses the same token to sweep its own
+`E2E Pseudonym` entries and clients before and after the test; the refresh token is revoked last.

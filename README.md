@@ -49,6 +49,14 @@ Requires Node 22.12 or later.
 - **Against an environment:** `SMOKE_URL=https://<distribution>.cloudfront.net npm run e2e`. The pipeline does this after every dev and prod deploy; a failure stops the release.
 - If you change a header in the infra web construct, change `e2e/local-server.mjs` to match.
 
+## Log-an-entry journey (Playwright, S2-17)
+
+`e2e/log-entry.spec.ts` drives the critical path of the entries page in a real browser: sign in, add a client, log an entry and see it in the table, get an overlapping session refused, then edit and delete the entry.
+
+- **Where it runs:** only against the enabled dev release (`APP_ENV=dev`, `AUTH_ENABLED=true`, `SMOKE_URL`), in the pipeline smoke step. Local and PR runs skip it, as they skip the native sign-in suite.
+- **Sign-in:** the native-client route of ADR-0011 through `e2e/native-browser.ts` (see `docs/auth-flow.md`). The Gateway, Lambdas and database are real; nothing drives Google.
+- **Data:** every name is a fictional pseudonym starting `E2E Pseudonym`. The test removes its entries and client before and after the run, even when a step fails.
+
 ## API contract
 
 `src/lib/api/openapi.yaml` is a **pinned copy** of the backend spec; `openapi.source.json` records the backend commit it came from (ADR-0006). Types are generated from it with openapi-typescript, and `openapi-fetch` is the typed client, so removing an endpoint from the spec breaks the build wherever it is called.
