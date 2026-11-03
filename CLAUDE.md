@@ -472,7 +472,7 @@ A working single-file HTML app (`therapy-hours-tracker.html`) defines the UX to 
 - Older files may have a single client and no `Clients / Groups` section: merge client names found in entries into the saved list (case-insensitive de-dupe).
 - **New export format** adds `Start` and `End` columns; the importer must accept both layouts (no times means "Needs time").
 
-**Markdown export (S4-07)** is written by `serializeLedger` in `src/features/export` from the pages of `GET /export/entries`:
+**Markdown export (S4-07)** is written by `serializeLedger` in `src/features/importexport` from the entries `loadExportEntries` reads from `GET /export/entries`:
 ```
 # Clinical Hours Ledger
 ## Summary
