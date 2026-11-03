@@ -52,8 +52,15 @@ export interface EntryFormProps {
   /** The values the form starts with. Read once, when the form mounts. */
   initialDraft?: EntryDraft | undefined;
   onCancel?: (() => void) | undefined;
+  /**
+   * Set when the entry being edited was imported without times ("Needs time"): the hours it was
+   * imported with, until the start and end times replace them with the calculated length (S4-05).
+   */
+  importedMinutes?: number | undefined;
 }
 
+const NEEDS_TIME_HINT = 'Imported without times. Add a start and end time to count it on your schedule.';
+const IMPORTED_HOURS_HINT = 'Imported hours. The start and end times replace them with the calculated length.';
 const NOTES_WARNING = 'Use pseudonyms or initials only, never real names. Supervisors can read your notes.';
 
 /** The entry form, in the prototype's order: date, category, start and end, hours, clients, on-site, notes. */
@@ -64,6 +71,7 @@ export function EntryForm({
   variant = 'add',
   initialDraft = emptyDraft,
   onCancel,
+  importedMinutes,
 }: EntryFormProps) {
   const text = variants[variant];
   const titleId = useId();
@@ -119,7 +127,11 @@ export function EntryForm({
       </FormField>
 
       <div className={styles.times}>
-        <FormField label="Start time" error={errors.startTime}>
+        <FormField
+          label="Start time"
+          error={errors.startTime}
+          hint={importedMinutes === undefined ? undefined : NEEDS_TIME_HINT}
+        >
           {(control) => (
             <Input
               {...control}
@@ -145,10 +157,17 @@ export function EntryForm({
         </FormField>
       </div>
 
-      <FormField label="Hours" hint="Calculated from the start and end times.">
+      <FormField
+        label="Hours"
+        hint={
+          minutes === null && importedMinutes !== undefined
+            ? IMPORTED_HOURS_HINT
+            : 'Calculated from the start and end times.'
+        }
+      >
         {({ id, 'aria-describedby': describedBy }) => (
           <output id={id} aria-describedby={describedBy} className={styles.hours}>
-            {minutes === null ? '—' : formatHours(minutes)}
+            {hoursText(minutes, importedMinutes)}
           </output>
         )}
       </FormField>
@@ -176,4 +195,10 @@ export function EntryForm({
       </div>
     </form>
   );
+}
+
+/** The read-only hours: calculated from the times, else the imported hours of a "Needs time" entry, else a dash. */
+function hoursText(minutes: number | null, importedMinutes: number | undefined): string {
+  if (minutes !== null) return formatHours(minutes);
+  return importedMinutes === undefined ? '—' : `${formatHours(importedMinutes)} (imported)`;
 }
