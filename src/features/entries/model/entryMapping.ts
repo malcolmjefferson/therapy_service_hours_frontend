@@ -9,7 +9,15 @@ type ConflictingEntry = components['schemas']['ConflictingEntry'];
 /** The fields an edit starts from (FE-19). */
 export type EditableEntry = Pick<
   Entry,
-  'session_date' | 'start_time' | 'end_time' | 'category' | 'clients' | 'on_site' | 'notes'
+  | 'session_date'
+  | 'start_time'
+  | 'end_time'
+  | 'category'
+  | 'clients'
+  | 'on_site'
+  | 'notes'
+  | 'needs_time'
+  | 'duration_minutes'
 >;
 
 /**

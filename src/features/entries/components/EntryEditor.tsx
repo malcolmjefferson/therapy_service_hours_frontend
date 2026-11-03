@@ -67,6 +67,7 @@ export function EntryEditor({ entry, onSaved, onCancel }: EntryEditorProps) {
         onSubmit={submit}
         variant={entry ? 'edit' : 'add'}
         initialDraft={entry ? draftFromEntry(entry) : undefined}
+        importedMinutes={entry?.needs_time ? entry.duration_minutes : undefined}
         onCancel={onCancel}
         clients={({ selectedIds, onChange }) => <ClientPicker selectedIds={selectedIds} onChange={onChange} />}
       />
