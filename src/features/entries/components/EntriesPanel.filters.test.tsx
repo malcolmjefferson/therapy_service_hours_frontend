@@ -26,7 +26,7 @@ describe('filter controls', () => {
     if (!headerRow) throw new Error('no header row');
     const row = within(headerRow);
     expect(row.getByRole('button', { name: 'Clear filters' })).toBeEnabled();
-    expect(row.getByRole('button', { name: 'Export' })).toBeDisabled();
+    expect(row.getByRole('button', { name: 'Export CSV' })).toBeEnabled();
     expect(row.getByRole('button', { name: 'Import' })).toBeDisabled();
   });
 
