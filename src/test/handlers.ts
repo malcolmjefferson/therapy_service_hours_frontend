@@ -11,6 +11,7 @@ type Entry = components['schemas']['Entry'];
 type EntryList = components['schemas']['EntryListResponse'];
 type EntryRequest = components['schemas']['EntryRequest'];
 type CategoryList = components['schemas']['CategoryListResponse'];
+type ImportReport = components['schemas']['ImportReport'];
 
 /** Absolute base URL the tests' API client uses (jsdom's origin plus the API base path). */
 export const API = 'http://localhost:3000/api/v1';
@@ -163,6 +164,17 @@ export const defaultHandlers: Record<string, HttpHandler | readonly HttpHandler[
       page: { page, page_size: pageSize, total_items: oldestFirst.length },
     });
   }),
+  // A report for a file with one imported row and one duplicate; tests that need another report override it.
+  '/import/markdown': http.post<never, never, ImportReport>(`${API}/import/markdown`, () =>
+    HttpResponse.json({
+      total_rows: 2,
+      imported_count: 1,
+      needs_time_count: 0,
+      merged_clients: [],
+      skipped_count: 1,
+      skipped_rows: [{ row: 2, reason: 'duplicate', message: 'Same date, category, hours, notes and clients.' }],
+    }),
+  ),
   '/clients': [
     http.get<never, never, ClientList>(`${API}/clients`, () =>
       HttpResponse.json({
@@ -181,9 +193,6 @@ export const defaultHandlers: Record<string, HttpHandler | readonly HttpHandler[
 export const handlerExemptions: Record<string, string> = {
   // Pinned with backend S2-03. Each gets a typed handler in the story whose code first calls it.
   '/clients/{clientId}': 'No frontend code calls it yet; the client picker (S2-12) only lists and creates clients.',
-  // Pinned with backend S4-01. Each gets a typed handler in the story whose code first calls it
-  // (`/export/entries` got its handler with the PDF export, S4-09).
-  '/import/markdown': 'No frontend code calls it yet; the import dialog (S4-10) is the first caller.',
 };
 
 /** A problem+json response, typed against the spec's Problem schema. */

@@ -1,0 +1,51 @@
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.summary {
+  margin: 0;
+  font-weight: 600;
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.skipped {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.skipped caption {
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+  text-align: left;
+}
+
+.skipped th,
+.skipped td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-ink-soft);
+  text-align: left;
+  vertical-align: top;
+}
+
+.progress {
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
+.error {
+  margin: var(--space-3) 0 0;
+  color: var(--color-red-deep);
+  font-weight: 600;
+}
