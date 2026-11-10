@@ -27,7 +27,7 @@ describe('filter controls', () => {
     const row = within(headerRow);
     expect(row.getByRole('button', { name: 'Clear filters' })).toBeEnabled();
     expect(row.getByRole('button', { name: 'Export CSV' })).toBeEnabled();
-    expect(row.getByRole('button', { name: 'Import' })).toBeDisabled();
+    expect(row.getByRole('button', { name: 'Import' })).toBeEnabled();
   });
 
   test('start empty and send no filter parameters', async () => {

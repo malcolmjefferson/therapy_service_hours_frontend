@@ -1,7 +1,9 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { Button, useToast } from '../../../components';
-import { ExportCsvButton } from '../../importexport';
+import { ExportCsvButton, ImportButton } from '../../importexport';
 import { useDeleteEntry, type DeleteEntryOutcome } from '../api/useDeleteEntry';
+import { entryKeys } from '../api/entryKeys';
 import { useEntriesQuery } from '../api/useEntriesQuery';
 import { useEntriesView } from '../hooks/useEntriesView';
 import { deleteFailure } from '../model/saveFailure';
@@ -38,6 +40,7 @@ export function EntriesPanel({ onEdit, onDeleted }: EntriesPanelProps) {
   // Clearing also drops client text that is typed but not applied yet, which the URL does not know about.
   const [clearCount, setClearCount] = useState(0);
   const toast = useToast();
+  const queryClient = useQueryClient();
   const remove = useDeleteEntry();
   const [pendingDelete, setPendingDelete] = useState<EntryRow | null>(null);
   const [deleteError, setDeleteError] = useState<string | undefined>();
@@ -128,10 +131,11 @@ export function EntriesPanel({ onEdit, onDeleted }: EntriesPanelProps) {
             Clear filters
           </Button>
           <ExportCsvButton />
-          {/* A placeholder until the import dialog (S4-10) wires it up. */}
-          <Button variant="ghost" disabled>
-            Import
-          </Button>
+          <ImportButton
+            onImported={() => {
+              void queryClient.invalidateQueries({ queryKey: entryKeys.lists() });
+            }}
+          />
         </div>
       </div>
       <EntriesFilters key={clearCount} filters={view} onChange={setFilters} />
