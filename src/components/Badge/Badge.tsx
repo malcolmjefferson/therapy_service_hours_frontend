@@ -3,10 +3,12 @@ import styles from './Badge.module.css';
 
 // Tones are named for the theme colors. Category groups map as Direct = gold, Indirect = lime,
 // Supervision = red (CLAUDE.md §12.2); the feature that knows the group enum owns that map (FE-14).
+// `neutral` is an outlined label for a state that is not a category group, such as "Needs time".
 const toneClass = {
   gold: styles.gold,
   lime: styles.lime,
   red: styles.red,
+  neutral: styles.neutral,
 } as const;
 
 export type BadgeTone = keyof typeof toneClass;

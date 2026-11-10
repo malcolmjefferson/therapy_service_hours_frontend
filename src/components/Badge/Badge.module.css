@@ -22,3 +22,9 @@
   background: var(--color-red-tint);
   color: var(--color-red-deep);
 }
+
+.neutral {
+  border: 1px solid var(--color-ink-soft);
+  background: var(--color-raised);
+  color: var(--color-ink);
+}

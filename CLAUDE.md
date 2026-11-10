@@ -279,7 +279,7 @@ Pending ──approve──► Approved (locked) ──revert (reason required)�
 - Every status change writes `entry_status_history` (who, when, from/to, reason).
 - **Bulk approve:** supervisor selects several entries or a date range; runs in one transaction and reports any skipped entries. Updates are conditional (`WHERE status = 'pending'`) so concurrent actions cannot double-apply.
 
-**Legacy imports:** entries imported from the prototype's Markdown have no times. They import flagged **"Needs time"**: they keep their hours and count toward goals but are excluded from schedules until a time is added. New entries always require times.
+**Legacy imports:** entries imported from the prototype's Markdown have no times. They import flagged **"Needs time"**: they keep their hours and count toward goals but are excluded from schedules until a time is added. New entries always require times. **Adding the times (S4-05):** the person edits the entry like any other (`PUT /entries/{id}`, which always requires both times), and the same save clears the flag, replaces the imported hours with the length calculated from the times, and keeps the entry pending. A save without both times is refused (400) and the entry stays flagged; the edit rules for approved and rejected entries are unchanged. The overlap check ignores a "Needs time" entry, so legacy entries never clash with anything; once it has times it is checked like any other session, and a clash is the usual 409 `entry-overlap` that leaves it flagged. The table shows a **"Needs time"** badge for these entries.
 
 ### 7.2 Goals and progress
 
@@ -471,6 +471,29 @@ A working single-file HTML app (`therapy-hours-tracker.html`) defines the UX to 
 - Multiple clients are separated by `; `. A literal `|` in a cell is escaped as `\|`. A client of `—` or empty means none.
 - Older files may have a single client and no `Clients / Groups` section: merge client names found in entries into the saved list (case-insensitive de-dupe).
 - **New export format** adds `Start` and `End` columns; the importer must accept both layouts (no times means "Needs time").
+
+**Markdown export (S4-07)** is written by `serializeLedger` in `src/features/importexport` from the entries `loadExportEntries` reads from `GET /export/entries`:
+```
+# Clinical Hours Ledger
+## Summary
+- Direct Service: 1.25 hours
+- Indirect Service: 1.00 hours
+- Supervision: 0.00 hours
+- Total Activity: 2.25 hours
+- Total Time On-site: 1.25 hours
+## Clients / Groups
+- A.B.
+## Entries
+| Date | Start | End | Group | Category | Client | Hours | On-site | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 2026-01-12 | 13:00 | 14:15 | Direct Service | Individual Counseling | A.B.; C.D. | 1.25 | Yes | text |
+```
+- Entries are oldest first. `Start` and `End` are `HH:MM`, or `—` for an entry that still needs times. Hours have two decimals, from the entry's minutes. The Summary counts hours as goals do (rejected entries left out); the importer ignores it.
+- Clients / Groups lists the saved clients the caller passes in (the export button passes them all), then clients found on entries, ignoring case; `- —` when there are none. A literal `|` in a cell is `\|`.
+- A row stays on one line, so a **line break in notes becomes a space**. A client name containing `;` or exactly `—` cannot be told from the separator or the none marker. Status is not in the file: re-imported entries start as pending.
+- Import after export gives the same entries; this is tested against a reader that follows `parse.go` (`src/test/ledgerParser.ts`).
+
+**CSV export (FR-IO-05, SEC-37):** one header row, then one row per entry, oldest first, with the columns `Date, Start, End, Group, Category, Client, Hours, On-site, Notes, Status`. `Start` and `End` are empty on a "Needs time" entry. Clients are joined with `; `, hours have two decimals and on-site is `Yes` or `No`. Rows end in CRLF (RFC 4180) and every field is quoted with embedded quotes doubled, so commas, quotes and line breaks in notes survive. A field that starts with `=`, `+`, `-`, `@`, a tab or a carriage return gets a leading `'` so a spreadsheet shows it as text. The download starts with a UTF-8 byte-order mark so Excel reads accented names correctly. The serializer is `entriesToCsv` in `src/features/importexport/model/csv.ts`.
 
 ---
 

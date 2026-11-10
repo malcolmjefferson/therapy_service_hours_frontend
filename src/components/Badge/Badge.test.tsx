@@ -4,7 +4,7 @@ import { describe, expect, test } from 'vitest';
 import { Badge } from './Badge';
 
 describe('Badge', () => {
-  test.each(['gold', 'lime', 'red'] as const)('renders its text in the %s tone', (tone) => {
+  test.each(['gold', 'lime', 'red', 'neutral'] as const)('renders its text in the %s tone', (tone) => {
     render(<Badge tone={tone}>Direct Service</Badge>);
     const badge = screen.getByText('Direct Service');
     expect(badge.tagName).toBe('SPAN');

@@ -1,4 +1,4 @@
-import { Button } from '../../../components';
+import { Badge, Button } from '../../../components';
 import type { components } from '../../../lib/api';
 import { formatSessionDate, formatTimeRange } from '../model/format';
 import { formatHours } from '../model/time';
@@ -20,6 +20,7 @@ export type EntryRow = Pick<
   | 'on_site'
   | 'notes'
   | 'status'
+  | 'needs_time'
 >;
 
 export interface EntryRowActions {
@@ -36,7 +37,7 @@ export function EntryTableRow({ entry, actions }: { entry: EntryRow; actions?: E
       <td>
         <time dateTime={entry.session_date}>{formatSessionDate(entry.session_date)}</time>
       </td>
-      <td className={styles.nowrap}>{times ?? <span className={styles.muted}>Needs time</span>}</td>
+      <td className={styles.nowrap}>{times ?? <Badge tone="neutral">Needs time</Badge>}</td>
       <td>
         <GroupBadge group={entry.category.group} />
         <div className={styles.category}>{entry.category.name}</div>

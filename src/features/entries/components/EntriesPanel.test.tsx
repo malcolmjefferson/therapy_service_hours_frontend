@@ -55,6 +55,21 @@ describe('entries table', () => {
     expect(await screen.findByText('Needs time')).toBeInTheDocument();
   });
 
+  test('the "Needs time" badge sits in the row, in the Time cell, and the imported hours stay in the Hours cell', async () => {
+    const entry = firstEntry();
+    const legacy: Entry = { ...entry, needs_time: true, duration_minutes: 90, hours: 1.5 };
+    delete legacy.start_time;
+    delete legacy.end_time;
+    serveEntries(1, [legacy, { ...entry, id: '00000000-0000-4000-8000-0000000000f1' }]);
+    renderPanel();
+    const rows = within(await screen.findByRole('table')).getAllByRole('row');
+    const legacyRow = within(row(rows, 1));
+    // The badge is real text in the cell, so a screen reader reads it with the row; color is not the signal.
+    expect(legacyRow.getByText('Needs time')).toBeVisible();
+    expect(legacyRow.getByText('1.50')).toBeVisible();
+    expect(within(row(rows, 2)).queryByText('Needs time')).not.toBeInTheDocument();
+  });
+
   test('shows notes and client names as text, never as markup', async () => {
     const entry = firstEntry();
     serveEntries(1, [{ ...entry, notes: '<img src=x onerror=alert(1)>' }]);

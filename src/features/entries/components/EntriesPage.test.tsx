@@ -19,6 +19,7 @@ const OVERLAP_TEXT = 'This overlaps an existing session on 2026-01-05 (09:00 to 
 
 const [first, second] = sampleEntries;
 if (!first || !second) throw new Error('sampleEntries needs two entries');
+const firstEntry: Entry = first;
 
 /** The `Individual Counseling` entry from the samples: 2026-01-12, 13:00 to 14:15, clients A.B. and C.D., on-site. */
 const editLabel = 'Edit entry: Jan 12, 2026, Individual Counseling';
@@ -368,6 +369,79 @@ describe('editing an entry', () => {
     await user.click(screen.getByRole('button', { name: 'Save changes' }));
     expect(await screen.findByText('Start time is required.')).toBeVisible();
     expect(calls).toHaveLength(0);
+  });
+
+  describe('a "Needs time" entry', () => {
+    /** The first sample as it imports from the prototype ledger: 1.5 hours typed in, no times. */
+    function legacyEntry(): Entry {
+      const legacy: Entry = { ...firstEntry, needs_time: true, duration_minutes: 90, hours: 1.5 };
+      delete legacy.start_time;
+      delete legacy.end_time;
+      return legacy;
+    }
+
+    test('shows the badge and imported hours, then adding times clears the badge and calculates the hours', async () => {
+      const items = serveEntries([legacyEntry()]);
+      const calls = recordUpdates((body, id) => {
+        const saved = entryFromRequest(body, id);
+        items[0] = saved;
+        return HttpResponse.json(saved);
+      });
+      const user = renderPage();
+      const table = await screen.findByRole('table');
+      expect(within(table).getByText('Needs time')).toBeVisible();
+      expect(within(table).getByText('1.50')).toBeVisible();
+
+      await startEditing(user);
+      // The form says why the times are asked for and keeps the imported hours until they are set.
+      expect(field('Start time')).toHaveAccessibleDescription(
+        'Imported without times. Add a start and end time to count it on your schedule.',
+      );
+      expect(field('Hours')).toHaveTextContent('1.50 (imported)');
+      expect(screen.getByText(/The start and end times replace them with the calculated length/)).toBeVisible();
+
+      await user.type(field('Start time'), '0900');
+      await user.type(field('End time'), '1015');
+      expect(field('Hours')).toHaveTextContent('1.25');
+      expect(field('Hours')).not.toHaveTextContent('imported');
+      await user.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      expect(await screen.findByText('Entry updated.')).toBeVisible();
+      expect(calls).toHaveLength(1);
+      expect(calls[0]?.body).toMatchObject({ start_time: '09:00', end_time: '10:15' });
+      expect(calls[0]?.body).not.toHaveProperty('hours');
+      // The refetched row has times, calculated hours and no badge.
+      await waitFor(() => {
+        expect(screen.queryByText('Needs time')).not.toBeInTheDocument();
+      });
+      const saved = within(await screen.findByRole('table'));
+      expect(saved.getByText('09:00 to 10:15')).toBeVisible();
+      expect(saved.getByText('1.25')).toBeVisible();
+      expect(saved.queryByText('1.50')).not.toBeInTheDocument();
+    });
+
+    test('times that overlap another session are refused on the start time and the entry stays "Needs time"', async () => {
+      serveEntries([legacyEntry(), second]);
+      recordUpdates(() => overlapResponse());
+      const user = renderPage();
+      await startEditing(user);
+      await user.type(field('Start time'), '0930');
+      await user.type(field('End time'), '1030');
+      await user.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      expect(await screen.findAllByText(OVERLAP_TEXT)).not.toHaveLength(0);
+      expect(field('Start time')).toHaveAccessibleDescription(expect.stringContaining(OVERLAP_TEXT));
+      expect(screen.getByRole('form', { name: 'Edit entry' })).toBeVisible();
+      expect(screen.getAllByText('Needs time')).toHaveLength(1);
+    });
+
+    test('an entry that already has times shows no imported-hours text', async () => {
+      serveEntries([first]);
+      const user = renderPage();
+      await startEditing(user);
+      expect(field('Hours')).toHaveTextContent('1.25');
+      expect(screen.queryByText(/imported/i)).not.toBeInTheDocument();
+    });
   });
 
   test('approved entries are locked: no Edit or Delete', async () => {
