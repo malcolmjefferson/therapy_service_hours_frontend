@@ -4,6 +4,7 @@ import axe from 'axe-core';
 import { http, HttpResponse } from 'msw';
 import { useState } from 'react';
 import { describe, expect, test, vi } from 'vitest';
+import { IN_PROGRESS_RETRIES } from '../../../lib/api';
 import { EntryForm } from '../../entries';
 import { server } from '../../../test/server';
 import { API, problemResponse, sampleClients } from '../../../test/handlers';
@@ -13,6 +14,19 @@ import { ClientPicker } from './ClientPicker';
 const [ab, cd, alpha] = sampleClients;
 type Client = (typeof sampleClients)[number];
 const NAME_TAKEN = 'urn:therapy-service-hours:problem:client-name-taken';
+
+/** The 409 the API sends while the first request with the same Idempotency-Key still runs. */
+function inProgressResponse() {
+  return HttpResponse.json(
+    {
+      type: 'urn:therapy-service-hours:problem:idempotency-key-in-progress',
+      title: 'Request still in progress',
+      status: 409,
+    },
+    // The API sends 1; 0 keeps the test from waiting a second per retry.
+    { status: 409, headers: { 'Content-Type': 'application/problem+json', 'Retry-After': '0' } },
+  );
+}
 
 function Harness({ initial = [] }: { initial?: string[] }) {
   const [ids, setIds] = useState<string[]>(initial);
@@ -273,6 +287,56 @@ describe('adding a client with +', () => {
     });
     expect(calls).toHaveLength(2);
     expect(calls[1]?.key).toBe(calls[0]?.key);
+  });
+
+  test('a save the server is still running is sent again with the same key and saved once', async () => {
+    let attempts = 0;
+    const created = (name: string) => ({ id: '00000000-0000-4000-8000-0000000000b4', name });
+    const calls = recordCreates(
+      (name) => {
+        attempts += 1;
+        return attempts <= 2 ? inProgressResponse() : HttpResponse.json(created(name), { status: 201 });
+      },
+      (name) => (attempts === 3 ? created(name) : undefined),
+    );
+    const { user } = setup();
+    await user.click(plus());
+    await user.type(screen.getByRole('textbox', { name: 'New client or group' }), 'E.F.');
+    await user.click(screen.getByRole('button', { name: 'Save client' }));
+
+    await waitFor(() => {
+      expect(trigger()).toHaveTextContent('E.F.');
+    });
+    expect(calls).toHaveLength(3);
+    expect(new Set(calls.map((call) => call.key)).size).toBe(1);
+  });
+
+  test('a save that stays in progress is explained and the next try reuses the key', async () => {
+    let attempts = 0;
+    const created = (name: string) => ({ id: '00000000-0000-4000-8000-0000000000b5', name });
+    const calls = recordCreates(
+      (name) => {
+        attempts += 1;
+        return attempts <= IN_PROGRESS_RETRIES + 1
+          ? inProgressResponse()
+          : HttpResponse.json(created(name), { status: 201 });
+      },
+      (name) => (attempts === IN_PROGRESS_RETRIES + 2 ? created(name) : undefined),
+    );
+    const { user } = setup();
+    await user.click(plus());
+    await user.type(screen.getByRole('textbox', { name: 'New client or group' }), 'E.F.');
+    await user.click(screen.getByRole('button', { name: 'Save client' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(/still being processed/);
+    expect(calls).toHaveLength(IN_PROGRESS_RETRIES + 1);
+    expect(screen.getByRole('textbox', { name: 'New client or group' })).toHaveValue('E.F.');
+
+    await user.click(screen.getByRole('button', { name: 'Save client' }));
+    await waitFor(() => {
+      expect(trigger()).toHaveTextContent('E.F.');
+    });
+    expect(calls).toHaveLength(IN_PROGRESS_RETRIES + 2);
+    expect(new Set(calls.map((call) => call.key)).size).toBe(1);
   });
 
   test('Escape and Cancel close the input without saving and return focus to +', async () => {
