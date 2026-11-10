@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError, retryWhileInProgress, useApiClient, type components } from '../../../lib/api';
 import { entryConflict, entryProblem, type EntryConflict } from './entryOutcome';
-import { entryKeys } from './entryKeys';
+import { refreshEntries } from './refreshEntries';
 
 type Entry = components['schemas']['Entry'];
 type EntryRequest = components['schemas']['EntryRequest'];
@@ -41,7 +41,7 @@ export function useCreateEntry() {
       throw new ApiError(result.response.status, problem);
     },
     // Waiting for the refetch means the table already shows the new entry when the form reports success.
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: entryKeys.lists() }),
+    onSuccess: () => refreshEntries(queryClient),
   });
 }
 
@@ -64,7 +64,6 @@ export function useUpdateEntry() {
       throw new ApiError(result.response.status, problem);
     },
     // An overlap changes nothing; a lock means the list on screen is stale, so it refreshes too.
-    onSuccess: ({ kind }) =>
-      kind === 'overlap' ? undefined : queryClient.invalidateQueries({ queryKey: entryKeys.lists() }),
+    onSuccess: ({ kind }) => (kind === 'overlap' ? undefined : refreshEntries(queryClient)),
   });
 }

@@ -195,6 +195,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/goals/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the current user's four goals with their progress
+         * @description One card per goal, in display order: Direct Service, Supervision, Total Activity, Total Time
+         *     On-site (FR-GOAL-01). **Approved** hours drive progress and **pending** hours are the lighter
+         *     segment; rejected entries are never counted (FR-GOAL-03). Hours are shown to two decimals,
+         *     rounded half up. Percents are whole numbers rounded **down**, so a milestone is only
+         *     reported once it is reached, and they are not capped: 108 means 8% over the target. On-site
+         *     has no target, so its target and percents are `null`. Supervision carries the Group /
+         *     Individual split (FR-GOAL-05). Only the caller's own goals are ever read.
+         */
+        get: operations["getGoalsProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/goals/{goalType}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Which goal. */
+                goalType: components["parameters"]["GoalType"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the target of one of the caller's goals
+         * @description Replaces the target, in whole hours (FR-GOAL-02). A target that is not a positive whole
+         *     number is **400**. Total Time On-site has no target, so `on_site` is **400** with the field
+         *     `goal_type`. The milestone already celebrated is not changed. Only the caller's own goal can
+         *     be changed; there is no way to name another user's.
+         */
+        put: operations["updateGoalTarget"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/import/markdown": {
         parameters: {
             query?: never;
@@ -251,6 +303,588 @@ export interface paths {
          *     so a client reads `page` 1 up to `ceil(total_items / page_size)`.
          */
         get: operations["exportEntries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supervisors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search active supervisors in the caller's organization
+         * @description Lists active supervisors in the **caller's own organization**, ordered by last name, first
+         *     name, then `id`. Supervisors in other organizations, deactivated supervisors and the caller
+         *     are never returned. `search` matches the start or any part of a first or last name,
+         *     ignoring case; `%`, `_` and `\` in it match literally. A `search` longer than 64
+         *     characters is a `400`. Each item is a dedicated DTO (id and display name only; no email,
+         *     roles or organization). The page that lists them shows the caller's own link state from
+         *     `GET /supervision-links?role=as_supervisee`.
+         */
+        get: operations["searchSupervisors"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supervision-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the caller's supervision links
+         * @description `role=as_supervisee` lists links where the caller is the supervisee (their current supervisor
+         *     or pending request, and their history); `role=as_supervisor` lists links where the caller is
+         *     the supervisor, which is the **inbox** with `status=pending` and the accepted supervisees
+         *     with `status=accepted`. Only the caller's own links are returned; a user who is not a
+         *     supervisor gets an empty list for `role=as_supervisor`. Newest request first, then `id`.
+         */
+        get: operations["listSupervisionLinks"];
+        put?: never;
+        /**
+         * Request supervision from a supervisor
+         * @description Creates a `pending` link from the caller to `supervisor_id` and notifies the supervisor in
+         *     the same transaction. The supervisor must be an active supervisor in the caller's
+         *     organization; anyone else (another organization, not a supervisor, deactivated, a missing
+         *     id) is `404`, so existence is not disclosed. Requesting yourself is `400`. A caller with a
+         *     pending or accepted link gets **409**
+         *     `urn:therapy-service-hours:problem:supervision-link-exists`; cancel or end it first.
+         */
+        post: operations["createSupervisionLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supervision-links/{linkId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Supervision link identifier. */
+                linkId: components["parameters"]["LinkId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel the caller's pending request
+         * @description Only the supervisee can cancel, and only while the link is `pending`. Any other caller, or
+         *     a link that does not exist, is `404`. The link is no longer pending: **409**
+         *     `urn:therapy-service-hours:problem:supervision-request-no-longer-valid`. Repeating the call
+         *     is safe because the state check answers it, so no `Idempotency-Key` is taken.
+         */
+        post: operations["cancelSupervisionLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supervision-links/{linkId}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Supervision link identifier. */
+                linkId: components["parameters"]["LinkId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept a pending request
+         * @description Only the link's supervisor can accept. The organization and link state are re-checked
+         *     inside the transaction: a link that was cancelled, answered already, or whose people no
+         *     longer share an organization is **409**
+         *     `urn:therapy-service-hours:problem:supervision-request-no-longer-valid`. Any other caller,
+         *     or a missing link, is `404`. The supervisee is notified. No `Idempotency-Key` is taken
+         *     because the state check answers a repeat.
+         */
+        post: operations["acceptSupervisionLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supervision-links/{linkId}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Supervision link identifier. */
+                linkId: components["parameters"]["LinkId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline a pending request
+         * @description Only the link's supervisor can decline, and no reason is needed or accepted. The supervisee
+         *     is notified. A link that is no longer pending is **409**
+         *     `urn:therapy-service-hours:problem:supervision-request-no-longer-valid`; any other caller,
+         *     or a missing link, is `404`. No `Idempotency-Key` is taken because the state check answers
+         *     a repeat.
+         */
+        post: operations["declineSupervisionLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supervision-links/{linkId}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Supervision link identifier. */
+                linkId: components["parameters"]["LinkId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * End an accepted link
+         * @description The supervisee, the supervisor or an admin can end an `accepted` link. History and past
+         *     approvals are kept, and the other party is notified. Any other caller, or a missing link,
+         *     is `404`. A link that is not accepted is **409**
+         *     `urn:therapy-service-hours:problem:supervision-link-not-active`. No `Idempotency-Key` is
+         *     taken because the state check answers a repeat.
+         */
+        post: operations["endSupervisionLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the caller's notifications
+         * @description Only the caller's own notifications, newest first, then `id`.
+         */
+        get: operations["listNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Count the caller's unread notifications
+         * @description Polled by the client about every 60 seconds and when the window regains focus, so it
+         *     returns only the count.
+         */
+        get: operations["getUnreadNotificationCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark all of the caller's notifications read
+         * @description Marks every unread notification of the caller read. Repeating it changes nothing (the
+         *     second answer has `marked_count` 0), so no `Idempotency-Key` is taken.
+         */
+        post: operations["markAllNotificationsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{notificationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Notification identifier. */
+                notificationId: components["parameters"]["NotificationId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark one notification read
+         * @description Marks the caller's notification read. Already-read notifications are returned unchanged
+         *     (the original `read_at` is kept), so no `Idempotency-Key` is taken. Another user's
+         *     notification, or a missing one, is `404`.
+         */
+        post: operations["markNotificationRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all organizations with their member counts
+         * @description Admin only (FR-ADM-01). Admin scope is global, so every organization is listed. Ordered by
+         *     name (case-insensitive), then `id`. A non-admin caller is **403** `urn:therapy-service-hours:problem:forbidden`.
+         */
+        get: operations["listAdminOrganizations"];
+        put?: never;
+        /**
+         * Create an organization
+         * @description Admin only (FR-ADM-01). Names are unique, ignoring case and surrounding spaces. A name that
+         *     is taken is **409** `urn:therapy-service-hours:problem:organization-name-taken`. The change is
+         *     written to the audit log in the same transaction.
+         */
+        post: operations["createAdminOrganization"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/organizations/{organizationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Organization identifier. */
+                organizationId: components["parameters"]["OrganizationId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete an organization that has no members
+         * @description Admin only (FR-ADM-01). An organization that any user belongs to, active or deactivated, is
+         *     not deleted: the answer is **409** `urn:therapy-service-hours:problem:organization-not-empty`
+         *     with `user_count`. There is no way to force it. An unknown organization is **404**. Audited.
+         */
+        delete: operations["deleteAdminOrganization"];
+        options?: never;
+        head?: never;
+        /**
+         * Rename an organization
+         * @description Admin only (FR-ADM-01). A name another organization already uses (ignoring case) is **409**
+         *     `urn:therapy-service-hours:problem:organization-name-taken`; changing only the letter case of
+         *     the organization's own name is allowed. An unknown organization is **404**. Audited.
+         */
+        patch: operations["renameAdminOrganization"];
+        trace?: never;
+    };
+    "/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List users for administration
+         * @description Admin only (FR-ADM-02). This is the one user list that includes **deactivated** users, because
+         *     an admin must find them to reactivate or permanently delete them (FR-ADM-05); every other list
+         *     and search hides them (FR-ADM-09). Use `status` to narrow it. Filters combine with AND.
+         *     `search` is a case-insensitive substring match against first name, last name, the full name
+         *     and email; `%`, `_` and `\` in it match literally (SEC-20 to SEC-25). `sort` and `dir` take
+         *     only the listed values, anything else is **400**. The default order is name ascending; ties are
+         *     broken by `id`, so pages are stable. The response describes people only: it never carries
+         *     entries, notes or clients (FR-ADM-10).
+         */
+        get: operations["listAdminUsers"];
+        put?: never;
+        /**
+         * Invite a user
+         * @description Admin only (FR-ADM-02, US-29). Creates the user row and a pending invitation together, then
+         *     the identity step prepares the Cognito side, so the person can sign in with Google. The
+         *     organization is required; a missing or unknown `organization_id` is **400** `validation`.
+         *     An email that belongs to another user, or that has a pending invitation, is **409**
+         *     `urn:therapy-service-hours:problem:user-email-taken`.
+         *
+         *     The work runs as one workflow (ADR-0002). If the identity step fails, the workflow undoes the
+         *     database reservation and the answer is **502**
+         *     `urn:therapy-service-hours:problem:identity-failure`; nothing was created and the same request
+         *     can be sent again with the same `Idempotency-Key`. If the workflow does not finish in time the
+         *     answer is **504** `urn:therapy-service-hours:problem:workflow-timeout`; the outcome is not
+         *     known, so read the user list before retrying.
+         */
+        post: operations["createAdminUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Read one user for administration
+         * @description Admin only. Includes a deactivated user. The response describes the person only, never their
+         *     entries or notes (FR-ADM-10). An unknown user is **404**.
+         */
+        get: operations["getAdminUser"];
+        put?: never;
+        post?: never;
+        /**
+         * Permanently delete a deactivated user
+         * @description Admin only (FR-ADM-05, US-32). The second step of deletion: it removes the user's entries,
+         *     clients, supervision links and notifications and the Cognito user. Only a **deactivated** user
+         *     can be deleted; an active user is **409** `urn:therapy-service-hours:problem:user-not-deactivated`.
+         *     The audit log keeps a snapshot of the display name (SEC-44). The UI asks the admin to type the
+         *     user's name first; the API itself needs no confirmation field. The last-admin rule (FR-ADM-06)
+         *     is enforced when an admin is deactivated, so a deactivated user is never the last active admin.
+         *     Workflow failures map as on `createAdminUser` (**502**, **504**). An unknown user, including one
+         *     already deleted, is **404**.
+         */
+        delete: operations["deleteAdminUser"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit a user's name
+         * @description Admin only (FR-ADM-02). Changes the name fields that are sent. Roles, organization and email
+         *     have their own operations because each has side effects: roles and email also change Cognito,
+         *     and a new organization ends supervision links. An unknown user is **404**. Audited.
+         */
+        patch: operations["updateAdminUser"];
+        trace?: never;
+    };
+    "/admin/users/{userId}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the full role set of a user
+         * @description Admin only (FR-ADM-03, US-30). Replaces the roles: `[]` is an ordinary user, and the base
+         *     user capability is always kept. The database is authoritative; the Cognito groups follow in
+         *     the same workflow, and the change takes effect on the user's next request at the latest
+         *     (ADR-0002). Removing `admin` from the last remaining admin is **409**
+         *     `urn:therapy-service-hours:problem:last-admin` (FR-ADM-06). Workflow failures map as on
+         *     `createAdminUser` (**502**, **504**). An unknown user is **404**. Audited.
+         */
+        put: operations["setAdminUserRoles"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change a user's email and re-invite them
+         * @description Admin only (FR-ADM-08, US-35). The old invitation is revoked and the old email loses access
+         *     immediately (Cognito and the allowlist); a new pending invitation is created for the new
+         *     email. The user keeps the same `id` and all data, and their first sign-in with the new email
+         *     binds to the existing row. An email another user or a pending invitation already uses is
+         *     **409** `urn:therapy-service-hours:problem:user-email-taken`. Sending the user's current email
+         *     is **400** `validation`. Workflow failures map as on `createAdminUser` (**502**, **504**). An
+         *     unknown user is **404**. Audited.
+         */
+        put: operations["changeAdminUserEmail"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}/organization": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Move a user to another organization
+         * @description Admin only (FR-ADM-04, US-31). Ends the user's supervision link and cancels their pending
+         *     requests; for a supervisor it also ends every supervisee's link. Nothing changes until the
+         *     admin has seen the consequences, so the request must carry `confirm_consequences: true`
+         *     (anything else is **400**); read them first from `previewAdminUserOrganizationChange`. The
+         *     target organization must exist (**400** `validation` otherwise) and differ from the current
+         *     one. An unknown user is **404**. Audited.
+         */
+        put: operations["setAdminUserOrganization"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}/organization-change-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Preview what moving a user to another organization would end
+         * @description Admin only (FR-ADM-04, US-31). Changes nothing. The counts feed the confirmation dialog; they
+         *     are zero until supervision links exist (S6). A target organization that does not exist or is
+         *     the user's current one is **400** `validation`. An unknown user is **404**.
+         */
+        get: operations["previewAdminUserOrganizationChange"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deactivate a user
+         * @description Admin only (FR-ADM-05, FR-ADM-09, US-32). The first step of deletion: blocks sign-in (Cognito
+         *     user disabled and signed out), hides the user from every list, search and schedule except the
+         *     admin user list, and keeps all data. Deactivating the last remaining admin is **409**
+         *     `urn:therapy-service-hours:problem:last-admin` (FR-ADM-06). Deactivating a user who is already
+         *     deactivated returns the user unchanged. Workflow failures map as on `createAdminUser` (**502**,
+         *     **504**). An unknown user is **404**. Audited.
+         */
+        post: operations["deactivateAdminUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reactivate a deactivated user
+         * @description Admin only (FR-ADM-05, US-32). Restores access: the Cognito user is enabled and the user
+         *     appears in lists again, with their data intact. Reactivating a user who is already active
+         *     returns the user unchanged. Workflow failures map as on `createAdminUser` (**502**, **504**).
+         *     An unknown user is **404**. Audited.
+         */
+        post: operations["reactivateAdminUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Page through the admin audit log
+         * @description Admin only (FR-ADM-07, US-34). Every admin action, newest first (`created_at`, then `id`, both
+         *     descending), so pages are stable. Rows survive the permanent deletion of the actor or the
+         *     target; the name snapshots keep them readable. The log is read-only through the API and
+         *     contains no entry, note or client content (FR-ADM-10).
+         */
+        get: operations["listAdminAudit"];
         put?: never;
         post?: never;
         delete?: never;
@@ -475,6 +1109,278 @@ export interface components {
          * @enum {string}
          */
         SkipReason: "duplicate" | "overlap" | "malformed-row" | "invalid-date" | "invalid-time" | "invalid-hours" | "unknown-category" | "invalid-client" | "invalid-notes";
+        /** @description A person as other members of a supervision link see them. Display name only. */
+        PersonRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        /** @description A supervisor in the caller's organization, as listed by the search. */
+        SupervisorSummary: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        SupervisorListResponse: {
+            items: components["schemas"]["SupervisorSummary"][];
+            page: components["schemas"]["PageInfo"];
+        };
+        /**
+         * @description Which side of the link the caller is on. The values are not the bare role names so the
+         *     generated Go constants do not collide with the `MeResponse` roles `admin` and `supervisor`.
+         * @enum {string}
+         */
+        SupervisionRole: "as_supervisee" | "as_supervisor";
+        /** @enum {string} */
+        SupervisionLinkStatus: "pending" | "accepted" | "declined" | "cancelled" | "ended";
+        /** @description Request supervision from one supervisor. Unknown fields are rejected. */
+        SupervisionRequest: {
+            /** Format: uuid */
+            supervisor_id: string;
+        };
+        SupervisionLink: {
+            /** Format: uuid */
+            id: string;
+            status: components["schemas"]["SupervisionLinkStatus"];
+            supervisee: components["schemas"]["PersonRef"];
+            supervisor: components["schemas"]["PersonRef"];
+            /** Format: date-time */
+            requested_at: string;
+            /**
+             * Format: date-time
+             * @description When the supervisor accepted or declined; null for a pending or cancelled request.
+             */
+            responded_at: string | null;
+            /**
+             * Format: date-time
+             * @description When an accepted link was ended; null otherwise.
+             */
+            ended_at: string | null;
+        };
+        SupervisionLinkListResponse: {
+            items: components["schemas"]["SupervisionLink"][];
+            page: components["schemas"]["PageInfo"];
+        };
+        /**
+         * @description The event. New values may be added within v1, so clients show an unknown type generically.
+         * @enum {string}
+         */
+        NotificationType: "supervision.request_received" | "supervision.request_accepted" | "supervision.request_declined" | "supervision.link_ended";
+        /**
+         * @description What the inbox needs to render the event. Display names and ids only (never client names,
+         *     notes or email addresses), at most 8 KiB.
+         */
+        NotificationPayload: {
+            /** Format: uuid */
+            link_id?: string;
+            /** Format: uuid */
+            actor_id?: string;
+            /** @description Display name of the person whose action caused the notification. */
+            actor_name?: string;
+        };
+        Notification: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["NotificationType"];
+            payload: components["schemas"]["NotificationPayload"];
+            /**
+             * Format: date-time
+             * @description Null while unread.
+             */
+            read_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        NotificationListResponse: {
+            items: components["schemas"]["Notification"][];
+            page: components["schemas"]["PageInfo"];
+        };
+        UnreadCount: {
+            /** Format: int64 */
+            unread_count: number;
+        };
+        MarkAllReadResult: {
+            /** Format: int64 */
+            marked_count: number;
+        };
+        /**
+         * @description A role an admin can grant. The base user capability is held by everyone and is not listed.
+         * @enum {string}
+         */
+        AdminRole: "admin" | "supervisor";
+        /**
+         * @description `deactivated` users cannot sign in and are hidden from every list except the admin user list.
+         * @enum {string}
+         */
+        AdminUserStatus: "active" | "deactivated";
+        /** @description An organization as the admin console sees it. */
+        AdminOrganization: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /**
+             * Format: int32
+             * @description Users who belong to the organization, active and deactivated. Delete is refused while this is above 0.
+             */
+            user_count: number;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /** @description Create or rename an organization. Unknown fields are rejected. */
+        AdminOrganizationRequest: {
+            /** @description Unique, ignoring case. Surrounding spaces are removed. */
+            name: string;
+        };
+        AdminOrganizationListResponse: {
+            items: components["schemas"]["AdminOrganization"][];
+            page: components["schemas"]["PageInfo"];
+        };
+        /** @description A 409 Problem for an organization. `user_count` is present only for `organization-not-empty`. */
+        AdminOrganizationConflictProblem: components["schemas"]["Problem"] & {
+            /** Format: int32 */
+            user_count?: number;
+        };
+        /**
+         * @description A person as the admin console sees them. It describes the account only; it has no entries,
+         *     notes or clients and never references the entry schemas (FR-ADM-10, ARC-18).
+         */
+        AdminUser: {
+            /** Format: uuid */
+            id: string;
+            first_name: string;
+            last_name: string;
+            /** @description Display name, `first_name` and `last_name`, or the email when both are empty. */
+            name: string;
+            /** Format: email */
+            email: string;
+            /** @description Roles held. An ordinary user has an empty array. */
+            roles: components["schemas"]["AdminRole"][];
+            organization: components["schemas"]["OrganizationProfile"];
+            status: components["schemas"]["AdminUserStatus"];
+            /**
+             * Format: date-time
+             * @description Present only while the user is deactivated.
+             */
+            deactivated_at?: string;
+            /** @description True once a first sign-in has bound the user to an identity. False for an invited user who has not signed in yet. */
+            has_signed_in: boolean;
+            /**
+             * @description State of the user's latest invitation. `pending` can still be redeemed; `expired` needs a
+             *     new invitation; `accepted` was redeemed by the first sign-in. Absent when the user has none.
+             * @enum {string}
+             */
+            invitation_status?: "pending" | "expired" | "accepted";
+            /**
+             * Format: date-time
+             * @description Present while `invitation_status` is `pending` or `expired`.
+             */
+            invitation_expires_at?: string;
+            /** Format: date-time */
+            created_at: string;
+        };
+        AdminUserListResponse: {
+            items: components["schemas"]["AdminUser"][];
+            page: components["schemas"]["PageInfo"];
+        };
+        /** @description Invite a user. The organization is required. Unknown fields are rejected. */
+        AdminUserCreateRequest: {
+            first_name: string;
+            last_name: string;
+            /**
+             * Format: email
+             * @description The Google account the person will sign in with. Unique among users, ignoring case.
+             */
+            email: string;
+            /** @description Roles to grant. Defaults to none (an ordinary user). */
+            roles?: components["schemas"]["AdminRole"][];
+            /** Format: uuid */
+            organization_id: string;
+        };
+        /** @description Edit a user's name. At least one field is required. Unknown fields are rejected. */
+        AdminUserUpdateRequest: {
+            first_name?: string;
+            last_name?: string;
+        };
+        /** @description The complete role set. Unknown fields are rejected. */
+        AdminUserRolesRequest: {
+            roles: components["schemas"]["AdminRole"][];
+        };
+        /** @description The user's new email. Unknown fields are rejected. */
+        AdminUserEmailRequest: {
+            /** Format: email */
+            email: string;
+        };
+        /** @description Move a user. Unknown fields are rejected. */
+        AdminUserOrganizationRequest: {
+            /** Format: uuid */
+            organization_id: string;
+            /**
+             * @description Must be `true`; the admin has seen the consequences from the preview.
+             * @enum {boolean}
+             */
+            confirm_consequences: true;
+        };
+        /** @description What an organization change would do. Nothing has changed when this is returned. */
+        AdminOrganizationChangePreview: {
+            /** Format: uuid */
+            user_id: string;
+            current_organization: components["schemas"]["OrganizationProfile"];
+            target_organization: components["schemas"]["OrganizationProfile"];
+            /** @description True when the user holds the supervisor role, so their supervisees' links end too. */
+            is_supervisor: boolean;
+            consequences: components["schemas"]["AdminOrganizationChangeConsequences"];
+        };
+        AdminOrganizationChangeConsequences: {
+            /**
+             * Format: int32
+             * @description Accepted supervision links that would end, as supervisee and, for a supervisor, as supervisor.
+             */
+            links_ended: number;
+            /**
+             * Format: int32
+             * @description Pending supervision requests that would be cancelled.
+             */
+            requests_cancelled: number;
+        };
+        /** @description One audit row. Names are snapshots taken when the action happened. */
+        AdminAuditEntry: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            created_at: string;
+            /**
+             * @description Dotted lowercase action name, for example `organization.create`, `organization.rename`,
+             *     `organization.delete`, `user.create`, `user.update`, `user.roles_change`,
+             *     `user.organization_change`, `user.email_change`, `user.deactivate`, `user.reactivate` or
+             *     `user.delete`. Clients display unknown names as they are.
+             */
+            action: string;
+            /**
+             * Format: uuid
+             * @description The admin who acted. Absent once that user has been permanently deleted.
+             */
+            actor_id?: string;
+            actor_name: string;
+            /**
+             * Format: uuid
+             * @description The user acted on. Absent for actions on no user, and once that user has been permanently deleted.
+             */
+            target_user_id?: string;
+            /** @description Display name of the user acted on, when the action had one. It stays after that user is deleted. */
+            target_name?: string;
+            details: components["schemas"]["AdminAuditDetails"];
+        };
+        /**
+         * @description What changed, as a small JSON object (for example the old and new role set). Keys depend on
+         *     `action`. It holds account facts only, never entry, note or client content.
+         */
+        AdminAuditDetails: {
+            [key: string]: unknown;
+        };
+        AdminAuditListResponse: {
+            items: components["schemas"]["AdminAuditEntry"][];
+            page: components["schemas"]["PageInfo"];
+        };
         GatewayUnauthorized: {
             message: string;
         };
@@ -500,6 +1406,80 @@ export interface components {
             request_id?: string;
             /** @description Invalid fields, for validation problems only. */
             errors?: components["schemas"]["ProblemField"][];
+        };
+        /**
+         * @description One of the four goals. `on_site` is tracked only and has no target.
+         * @enum {string}
+         */
+        GoalType: "direct" | "supervision" | "total_activity" | "on_site";
+        /** @description The new target. Unknown fields are rejected. */
+        GoalTargetRequest: {
+            /**
+             * Format: int32
+             * @description Whole hours, at least 1.
+             */
+            target_hours: number;
+        };
+        GoalTarget: {
+            goal_type: components["schemas"]["GoalType"];
+            /** Format: int32 */
+            target_hours: number;
+        };
+        HoursTotals: {
+            /**
+             * Format: double
+             * @description Approved hours, to two decimals.
+             */
+            approved_hours: number;
+            /**
+             * Format: double
+             * @description Pending hours, to two decimals.
+             */
+            pending_hours: number;
+        };
+        /** @description How the Supervision hours divide between the two supervision categories (FR-GOAL-05). */
+        SupervisionSplit: {
+            group: components["schemas"]["HoursTotals"];
+            individual: components["schemas"]["HoursTotals"];
+        };
+        GoalProgress: {
+            goal_type: components["schemas"]["GoalType"];
+            /**
+             * Format: int32
+             * @description The target in whole hours; `null` for `on_site`.
+             */
+            target_hours: number | null;
+            /**
+             * Format: double
+             * @description Approved hours toward the goal, to two decimals. Not capped at the target.
+             */
+            approved_hours: number;
+            /**
+             * Format: double
+             * @description Pending hours toward the goal, to two decimals (the lighter segment).
+             */
+            pending_hours: number;
+            /**
+             * Format: int32
+             * @description Approved hours as a whole percent of the target, rounded down and not capped; `null` without a target.
+             */
+            approved_percent: number | null;
+            /**
+             * Format: int32
+             * @description Pending hours as a whole percent of the target, rounded down and not capped; `null` without a target.
+             */
+            pending_percent: number | null;
+            /**
+             * Format: int32
+             * @description The highest milestone already celebrated (CLAUDE.md §7.3).
+             */
+            last_celebrated_percent: number;
+            /** @description Present only on the `supervision` goal. */
+            supervision_split?: components["schemas"]["SupervisionSplit"];
+        };
+        GoalsProgressResponse: {
+            /** @description The four goals in display order. */
+            goals: components["schemas"]["GoalProgress"][];
         };
         ProblemField: {
             field: string;
@@ -606,11 +1586,97 @@ export interface components {
             };
         };
         /**
+         * @description `type` is `urn:therapy-service-hours:problem:supervision-link-exists` (the caller already
+         *     has a pending or accepted link), `urn:therapy-service-hours:problem:supervision-request-no-longer-valid`
+         *     (the request is no longer pending, or its people no longer share an organization) or
+         *     `urn:therapy-service-hours:problem:supervision-link-not-active` (the link is not accepted).
+         *     On `POST /supervision-links` it can also be an idempotency problem (see the
+         *     `Idempotency-Key` parameter).
+         */
+        SupervisionConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
+        /**
          * @description The upload is over a limit. `type` is `urn:therapy-service-hours:problem:body-too-large`
          *     (the file is over 1 MiB) or `urn:therapy-service-hours:problem:import-too-many-rows` (the
          *     entries table has more than 5,000 rows). Nothing was stored.
          */
         PayloadTooLarge: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
+        /**
+         * @description The caller is not an active admin, or is deactivated. `type` is
+         *     `urn:therapy-service-hours:problem:forbidden`. Roles come from the database, not the token,
+         *     and nothing is started or changed. Every admin route answers this way (US-30).
+         */
+        AdminForbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
+        /**
+         * @description `type` is `urn:therapy-service-hours:problem:organization-name-taken` (another organization
+         *     has that name, ignoring case) or `urn:therapy-service-hours:problem:organization-not-empty`
+         *     (users still belong to the organization; `user_count` says how many). On `POST` it can also be
+         *     an idempotency problem (see the `Idempotency-Key` parameter).
+         */
+        AdminOrganizationConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["AdminOrganizationConflictProblem"];
+            };
+        };
+        /**
+         * @description The action is refused in the user's current state. `type` is one of
+         *     `urn:therapy-service-hours:problem:user-email-taken` (the email belongs to another user or has a
+         *     pending invitation), `urn:therapy-service-hours:problem:last-admin` (the action would leave no
+         *     active admin; FR-ADM-06), or `urn:therapy-service-hours:problem:user-not-deactivated`
+         *     (only a deactivated user can be permanently deleted). Nothing was changed. Where the operation
+         *     takes `Idempotency-Key` it can also be an idempotency problem.
+         */
+        AdminUserConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
+        /**
+         * @description The identity step (Cognito) failed or was unreachable, and the workflow ran its compensation:
+         *     the database was returned to its state before the request. `type` is
+         *     `urn:therapy-service-hours:problem:identity-failure`. Nothing changed; the request can be
+         *     repeated, with the same `Idempotency-Key` where the operation takes one.
+         */
+        IdentityFailure: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
+        /**
+         * @description The workflow did not finish within the API Gateway limit. `type` is
+         *     `urn:therapy-service-hours:problem:workflow-timeout`. The outcome is **unknown**: the action
+         *     may have completed or been compensated. Read the user again before repeating it.
+         */
+        WorkflowTimeout: {
             headers: {
                 [name: string]: unknown;
             };
@@ -644,10 +1710,20 @@ export interface components {
          *     that failed can be sent again with the same key once its cause is fixed.
          */
         IdempotencyKey: string;
+        /** @description Which goal. */
+        GoalType: components["schemas"]["GoalType"];
         /** @description Entry identifier. */
         EntryId: string;
         /** @description Client identifier. */
         ClientId: string;
+        /** @description Supervision link identifier. */
+        LinkId: string;
+        /** @description Notification identifier. */
+        NotificationId: string;
+        /** @description Organization identifier. */
+        OrganizationId: string;
+        /** @description User identifier. */
+        UserId: string;
     };
     requestBodies: never;
     headers: never;
@@ -1040,6 +2116,60 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    getGoalsProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's goals and progress. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoalsProgressResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateGoalTarget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Which goal. */
+                goalType: components["parameters"]["GoalType"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoalTargetRequest"];
+            };
+        };
+        responses: {
+            /** @description The goal with its new target. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoalTarget"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
     importMarkdown: {
         parameters: {
             query?: never;
@@ -1145,6 +2275,874 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    searchSupervisors: {
+        parameters: {
+            query?: {
+                /** @description Part of a first or last name. Wildcard characters match literally. */
+                search?: string;
+                /** @description 1-based page number. */
+                page?: components["parameters"]["Page"];
+                /** @description Items per page (GO-56, ARC-16). */
+                page_size?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of supervisors. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupervisorListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listSupervisionLinks: {
+        parameters: {
+            query: {
+                /** @description Which side of the link the caller is on. */
+                role: components["schemas"]["SupervisionRole"];
+                /** @description Only links in this status. All statuses when omitted. */
+                status?: components["schemas"]["SupervisionLinkStatus"];
+                /** @description 1-based page number. */
+                page?: components["parameters"]["Page"];
+                /** @description Items per page (GO-56, ARC-16). */
+                page_size?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of links. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupervisionLinkListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createSupervisionLink: {
+        parameters: {
+            query?: never;
+            header: {
+                /**
+                 * @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). Keys are kept
+                 *     for 24 hours and belong to the caller. Repeating a request with the same key and the same
+                 *     body returns the original **successful** response, marked `Idempotency-Replayed: true`,
+                 *     without creating anything again. The same key with a different body or endpoint is **409**
+                 *     `urn:therapy-service-hours:problem:idempotency-key-reused`. If the first request is still
+                 *     running, the answer is **409** `urn:therapy-service-hours:problem:idempotency-key-in-progress`
+                 *     with `Retry-After`; repeat the same request. An error response is not stored, so a request
+                 *     that failed can be sent again with the same key once its cause is fixed.
+                 */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupervisionRequest"];
+            };
+        };
+        responses: {
+            /** @description The request was created and is pending. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupervisionLink"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["SupervisionConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    cancelSupervisionLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Supervision link identifier. */
+                linkId: components["parameters"]["LinkId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The cancelled link. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupervisionLink"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["SupervisionConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    acceptSupervisionLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Supervision link identifier. */
+                linkId: components["parameters"]["LinkId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The accepted link. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupervisionLink"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["SupervisionConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    declineSupervisionLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Supervision link identifier. */
+                linkId: components["parameters"]["LinkId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The declined link. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupervisionLink"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["SupervisionConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    endSupervisionLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Supervision link identifier. */
+                linkId: components["parameters"]["LinkId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The ended link. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupervisionLink"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["SupervisionConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listNotifications: {
+        parameters: {
+            query?: {
+                /** @description Set to `true` to list only unread notifications. */
+                unread_only?: boolean;
+                /** @description 1-based page number. */
+                page?: components["parameters"]["Page"];
+                /** @description Items per page (GO-56, ARC-16). */
+                page_size?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of notifications. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getUnreadNotificationCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The number of unread notifications. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCount"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    markAllNotificationsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description How many notifications were newly marked read. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkAllReadResult"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    markNotificationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Notification identifier. */
+                notificationId: components["parameters"]["NotificationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The notification. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notification"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listAdminOrganizations: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: components["parameters"]["Page"];
+                /** @description Items per page (GO-56, ARC-16). */
+                page_size?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of organizations. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOrganizationListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createAdminOrganization: {
+        parameters: {
+            query?: never;
+            header: {
+                /**
+                 * @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). Keys are kept
+                 *     for 24 hours and belong to the caller. Repeating a request with the same key and the same
+                 *     body returns the original **successful** response, marked `Idempotency-Replayed: true`,
+                 *     without creating anything again. The same key with a different body or endpoint is **409**
+                 *     `urn:therapy-service-hours:problem:idempotency-key-reused`. If the first request is still
+                 *     running, the answer is **409** `urn:therapy-service-hours:problem:idempotency-key-in-progress`
+                 *     with `Retry-After`; repeat the same request. An error response is not stored, so a request
+                 *     that failed can be sent again with the same key once its cause is fixed.
+                 */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminOrganizationRequest"];
+            };
+        };
+        responses: {
+            /** @description The organization was created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOrganization"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            409: components["responses"]["AdminOrganizationConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteAdminOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Organization identifier. */
+                organizationId: components["parameters"]["OrganizationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The organization was deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["AdminOrganizationConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    renameAdminOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Organization identifier. */
+                organizationId: components["parameters"]["OrganizationId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminOrganizationRequest"];
+            };
+        };
+        responses: {
+            /** @description The renamed organization. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOrganization"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["AdminOrganizationConflict"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listAdminUsers: {
+        parameters: {
+            query?: {
+                /** @description Only users whose name or email contains this text, ignoring case. */
+                search?: string;
+                /** @description Only users in this organization. */
+                organization_id?: string;
+                /** @description Only users who hold this role. */
+                role?: components["schemas"]["AdminRole"];
+                /** @description Only users with this status. Omit to list both. */
+                status?: components["schemas"]["AdminUserStatus"];
+                /** @description Column to sort by. */
+                sort?: "name" | "email" | "organization" | "created_at";
+                /** @description Sort direction. */
+                dir?: "asc" | "desc";
+                /** @description 1-based page number. */
+                page?: components["parameters"]["Page"];
+                /** @description Items per page (GO-56, ARC-16). */
+                page_size?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of users. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createAdminUser: {
+        parameters: {
+            query?: never;
+            header: {
+                /**
+                 * @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). Keys are kept
+                 *     for 24 hours and belong to the caller. Repeating a request with the same key and the same
+                 *     body returns the original **successful** response, marked `Idempotency-Replayed: true`,
+                 *     without creating anything again. The same key with a different body or endpoint is **409**
+                 *     `urn:therapy-service-hours:problem:idempotency-key-reused`. If the first request is still
+                 *     running, the answer is **409** `urn:therapy-service-hours:problem:idempotency-key-in-progress`
+                 *     with `Retry-After`; repeat the same request. An error response is not stored, so a request
+                 *     that failed can be sent again with the same key once its cause is fixed.
+                 */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description The user was created and invited. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            409: components["responses"]["AdminUserConflict"];
+            502: components["responses"]["IdentityFailure"];
+            504: components["responses"]["WorkflowTimeout"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getAdminUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The user. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteAdminUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The user and their data were deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["AdminUserConflict"];
+            502: components["responses"]["IdentityFailure"];
+            504: components["responses"]["WorkflowTimeout"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateAdminUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description The updated user. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    setAdminUserRoles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserRolesRequest"];
+            };
+        };
+        responses: {
+            /** @description The user with the new roles. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["AdminUserConflict"];
+            502: components["responses"]["IdentityFailure"];
+            504: components["responses"]["WorkflowTimeout"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    changeAdminUserEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description The user, signed out and awaiting the new sign-in (`has_signed_in` false). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["AdminUserConflict"];
+            502: components["responses"]["IdentityFailure"];
+            504: components["responses"]["WorkflowTimeout"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    setAdminUserOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserOrganizationRequest"];
+            };
+        };
+        responses: {
+            /** @description The user in the new organization. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    previewAdminUserOrganizationChange: {
+        parameters: {
+            query: {
+                /** @description The organization the user would move to. */
+                organization_id: string;
+            };
+            header?: never;
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description What the move would do. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOrganizationChangePreview"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deactivateAdminUser: {
+        parameters: {
+            query?: never;
+            header: {
+                /**
+                 * @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). Keys are kept
+                 *     for 24 hours and belong to the caller. Repeating a request with the same key and the same
+                 *     body returns the original **successful** response, marked `Idempotency-Replayed: true`,
+                 *     without creating anything again. The same key with a different body or endpoint is **409**
+                 *     `urn:therapy-service-hours:problem:idempotency-key-reused`. If the first request is still
+                 *     running, the answer is **409** `urn:therapy-service-hours:problem:idempotency-key-in-progress`
+                 *     with `Retry-After`; repeat the same request. An error response is not stored, so a request
+                 *     that failed can be sent again with the same key once its cause is fixed.
+                 */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The deactivated user. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["AdminUserConflict"];
+            502: components["responses"]["IdentityFailure"];
+            504: components["responses"]["WorkflowTimeout"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    reactivateAdminUser: {
+        parameters: {
+            query?: never;
+            header: {
+                /**
+                 * @description Client-generated key, one per user action and reused on retry (GO-57, FE-34). Keys are kept
+                 *     for 24 hours and belong to the caller. Repeating a request with the same key and the same
+                 *     body returns the original **successful** response, marked `Idempotency-Replayed: true`,
+                 *     without creating anything again. The same key with a different body or endpoint is **409**
+                 *     `urn:therapy-service-hours:problem:idempotency-key-reused`. If the first request is still
+                 *     running, the answer is **409** `urn:therapy-service-hours:problem:idempotency-key-in-progress`
+                 *     with `Retry-After`; repeat the same request. An error response is not stored, so a request
+                 *     that failed can be sent again with the same key once its cause is fixed.
+                 */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                /** @description User identifier. */
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The reactivated user. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            502: components["responses"]["IdentityFailure"];
+            504: components["responses"]["WorkflowTimeout"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listAdminAudit: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: components["parameters"]["Page"];
+                /** @description Items per page (GO-56, ARC-16). */
+                page_size?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of audit rows, newest first. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuditListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
             default: components["responses"]["Problem"];
         };
     };
