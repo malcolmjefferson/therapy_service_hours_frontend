@@ -12,6 +12,9 @@ type EntryList = components['schemas']['EntryListResponse'];
 type EntryRequest = components['schemas']['EntryRequest'];
 type CategoryList = components['schemas']['CategoryListResponse'];
 type ImportReport = components['schemas']['ImportReport'];
+type GoalsProgress = components['schemas']['GoalsProgressResponse'];
+type GoalTarget = components['schemas']['GoalTarget'];
+type GoalTargetRequest = components['schemas']['GoalTargetRequest'];
 
 /** Absolute base URL the tests' API client uses (jsdom's origin plus the API base path). */
 export const API = 'http://localhost:3000/api/v1';
@@ -81,6 +84,52 @@ export const sampleCategories: CategoryList = {
       group: 'supervision',
       label: 'Supervision',
       categories: [{ id: '00000000-0000-4000-8000-0000000000c4', name: 'Individual Supervision' }],
+    },
+  ],
+};
+
+/** The four goals the default `GET /goals/progress` returns (fictional data, FE-70). */
+export const sampleGoals: GoalsProgress = {
+  goals: [
+    {
+      goal_type: 'direct',
+      target_hours: 1200,
+      approved_hours: 312.5,
+      pending_hours: 20,
+      approved_percent: 26,
+      pending_percent: 1,
+      last_celebrated_percent: 25,
+    },
+    {
+      goal_type: 'supervision',
+      target_hours: 100,
+      approved_hours: 40,
+      pending_hours: 3.5,
+      approved_percent: 40,
+      pending_percent: 3,
+      last_celebrated_percent: 25,
+      supervision_split: {
+        group: { approved_hours: 15, pending_hours: 1.5 },
+        individual: { approved_hours: 25, pending_hours: 2 },
+      },
+    },
+    {
+      goal_type: 'total_activity',
+      target_hours: 3000,
+      approved_hours: 900,
+      pending_hours: 60,
+      approved_percent: 30,
+      pending_percent: 2,
+      last_celebrated_percent: 25,
+    },
+    {
+      goal_type: 'on_site',
+      target_hours: null,
+      approved_hours: 210,
+      pending_hours: 12.25,
+      approved_percent: null,
+      pending_percent: null,
+      last_celebrated_percent: 0,
     },
   ],
 };
@@ -175,6 +224,14 @@ export const defaultHandlers: Record<string, HttpHandler | readonly HttpHandler[
       skipped_rows: [{ row: 2, reason: 'duplicate', message: 'Same date, category, hours, notes and clients.' }],
     }),
   ),
+  '/goals/progress': http.get<never, never, GoalsProgress>(`${API}/goals/progress`, () =>
+    HttpResponse.json(sampleGoals),
+  ),
+  '/goals/{goalType}': http.put<{ goalType: GoalTarget['goal_type'] }, GoalTargetRequest, GoalTarget>(
+    `${API}/goals/:goalType`,
+    async ({ params, request }) =>
+      HttpResponse.json({ goal_type: params.goalType, target_hours: (await request.json()).target_hours }),
+  ),
   '/clients': [
     http.get<never, never, ClientList>(`${API}/clients`, () =>
       HttpResponse.json({
@@ -193,6 +250,29 @@ export const defaultHandlers: Record<string, HttpHandler | readonly HttpHandler[
 export const handlerExemptions: Record<string, string> = {
   // Pinned with backend S2-03. Each gets a typed handler in the story whose code first calls it.
   '/clients/{clientId}': 'No frontend code calls it yet; the client picker (S2-12) only lists and creates clients.',
+  // Pinned with backend S3-03 along with the supervision, notification and admin contracts that
+  // landed before it. Each gets a typed handler in the story whose code first calls it.
+  '/supervisors': 'Supervisor search (S6) is not built in the frontend yet.',
+  '/supervision-links': 'Supervision requests (S6) are not built in the frontend yet.',
+  '/supervision-links/{linkId}/cancel': 'Supervision requests (S6) are not built in the frontend yet.',
+  '/supervision-links/{linkId}/accept': 'The supervisor inbox (S6) is not built in the frontend yet.',
+  '/supervision-links/{linkId}/decline': 'The supervisor inbox (S6) is not built in the frontend yet.',
+  '/supervision-links/{linkId}/end': 'Ending a supervision link (S6) is not built in the frontend yet.',
+  '/notifications': 'Notifications (S6) are not built in the frontend yet.',
+  '/notifications/unread-count': 'Notifications (S6) are not built in the frontend yet.',
+  '/notifications/read-all': 'Notifications (S6) are not built in the frontend yet.',
+  '/notifications/{notificationId}/read': 'Notifications (S6) are not built in the frontend yet.',
+  '/admin/organizations': 'The admin console (S5) is not built in the frontend yet.',
+  '/admin/organizations/{organizationId}': 'The admin console (S5) is not built in the frontend yet.',
+  '/admin/users': 'The admin console (S5) is not built in the frontend yet.',
+  '/admin/users/{userId}': 'The admin console (S5) is not built in the frontend yet.',
+  '/admin/users/{userId}/roles': 'The admin console (S5) is not built in the frontend yet.',
+  '/admin/users/{userId}/email': 'The admin console (S5) is not built in the frontend yet.',
+  '/admin/users/{userId}/organization': 'The admin console (S5) is not built in the frontend yet.',
+  '/admin/users/{userId}/organization-change-preview': 'The admin console (S5) is not built in the frontend yet.',
+  '/admin/users/{userId}/deactivate': 'The admin console (S5) is not built in the frontend yet.',
+  '/admin/users/{userId}/reactivate': 'The admin console (S5) is not built in the frontend yet.',
+  '/admin/audit': 'The admin console (S5) is not built in the frontend yet.',
 };
 
 /** A problem+json response, typed against the spec's Problem schema. */

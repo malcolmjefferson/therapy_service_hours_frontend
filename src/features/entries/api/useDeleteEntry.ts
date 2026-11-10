@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError, useApiClient } from '../../../lib/api';
 import { entryConflict, entryProblem } from './entryOutcome';
-import { entryKeys } from './entryKeys';
+import { refreshEntries } from './refreshEntries';
 
 /** `gone` means the entry was already deleted elsewhere, which is the state the person wanted. */
 export type DeleteEntryOutcome = 'deleted' | 'gone' | 'locked';
@@ -25,6 +25,6 @@ export function useDeleteEntry() {
       throw new ApiError(result.response.status, problem);
     },
     // Locked and gone entries mean the list on screen is stale, so every outcome but an error refreshes it.
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: entryKeys.lists() }),
+    onSuccess: () => refreshEntries(queryClient),
   });
 }

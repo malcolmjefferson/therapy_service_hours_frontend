@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError, useApiClient, type components } from '../../../lib/api';
 import { clientKeys } from '../../clients';
+import { goalKeys } from '../../goals';
 
 type ImportReport = components['schemas']['ImportReport'];
 
@@ -39,6 +40,11 @@ export function useImportMarkdown() {
       // A gateway rejection is `{ message }`, not a problem body.
       throw new ApiError(result.response.status, 'type' in result.error ? result.error : undefined);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: clientKeys.list() }),
+    onSuccess: () =>
+      // Imported entries add pending hours to the goals too.
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: clientKeys.list() }),
+        queryClient.invalidateQueries({ queryKey: goalKeys.all }),
+      ]),
   });
 }
